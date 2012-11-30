@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wavelet Compression Demo</string>
+    <string name="original">Original</string>
+    <string name="decomposed">Decomposed</string>
+    <string name="quantized">Quantized</string>
+    <string name="recomposed">Recomposed</string>
+    <string name="difference">Difference</string>
+    <string name="outputImage">Output Image</string>
+    <string name="compression_prompt">Compression level:</string>
+    
+    <string-array name="input_images">
+        <item>Lena</item>
+        <item>Mandrill</item>
+        <item>Mona Lisa</item>
+        <item>Noise</item>
+        <item>Tahoe</item>
+    </string-array>
+    
+    <string-array name="compression_level">
+        <item>Float</item>
+        <item>24-bit</item>
+        <item>21-bit</item>
+        <item>18-bit</item>
+        <item>15-bit</item>
+        <item>12-bit</item>
+        <item>9-bit</item>
+        <item>6-bit</item>
+    </string-array>
+
+</resources>
