@@ -9,6 +9,9 @@
 #include <math.h>
 
 #include "stats.h"
+#include "Point3.h"
+#include "Vector3.h"
+#include "Ray3.h"
 
 #define  LOG_TAG    "libplasma"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -91,9 +94,12 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 			uint32_t * p = pixRef(info, pixels, x, y);
 			RGBAfromU32(*p, R, G, B);
 
-			R = rand();
 
-			*p = RGBAtoU32(R, G, B);
+			Point3 eye = Point3(rand(),rand(),0);
+			Point3 samplePoint = Point3(0, (x - info.width / 2), (y - info.height / 2));
+			Ray3 ray = Ray3(eye, samplePoint);
+
+			*p = RGBAtoU32(ray.mVector.x, ray.mVector.y, ray.mVector.z);
 		}
 	}
 }
