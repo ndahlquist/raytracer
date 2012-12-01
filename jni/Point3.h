@@ -21,7 +21,7 @@ struct Point3
     	this->x = x;
     	this->y = y;
     	this->z = z;
-    };
+    }
    // inline explicit Point3(const STVector3& v);
 
     //inline Point3& operator+=(const STVector3& right);
@@ -31,21 +31,19 @@ struct Point3
     * Returns distance between two points
     * Called as Point3::Dist(left, right)
     */
-    static inline float Dist(const Point3& left, const Point3& right);
+    //static inline float Dist(const Point3& left, const Point3& right);
 
     /**
     * Returns distance squared between two points
     * Called as Point3::DistSq(left, right)
     */
-    static inline float DistSq(const Point3& left, const Point3& right);
+    //static inline float DistSq(const Point3& left, const Point3& right);
 
     float x, y, z;
-
-    static const Point3 Origin;
 };
 
-inline Vector3 operator-(const Point3& origin, const Point3& end) {
-	return Vector3(end.x - origin.x, end.y - origin.y, end.z - origin.z);
+inline Vector3 operator-(const Point3& left, const Point3& right) {
+	return Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
 }
 
 //inline Point3 operator+(const Point3& left, const STVector3& right);

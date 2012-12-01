@@ -7,9 +7,6 @@
 #include "Vector3.h"
 #include "Point3.h"
 
-/**
-* Ray3 represents a 3-vector
-*/
 struct Ray3
 {
     //
@@ -21,8 +18,8 @@ struct Ray3
    // inline Ray3(float x, float y, float z);
     //inline Ray3(float s);
 	inline Ray3(const Point3& origin, const Point3& endpoint) {
-		this->mEndpoint = origin;
-		this->mVector = endpoint - origin;
+		this->endpoint = origin;
+		this->vector = endpoint - origin;
 	}
 
 	/*
@@ -83,8 +80,8 @@ struct Ray3
     inline static Ray3 ComponentMin(const Ray3& left, const Ray3& right);*/
 
     // Local members
-    Point3 mEndpoint;
-    Vector3 mVector;
+    Point3 endpoint;
+    Vector3 vector;
 
 };
 
