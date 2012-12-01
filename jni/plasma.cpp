@@ -95,16 +95,32 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 			RGBAfromU32(*p, R, G, B);
 
 
-			Point3 eye = Point3(-10,0,0);
-			Point3 samplePoint = Point3(0, x - info.width / 2.0f, y - info.height / 2.0f);
+			Point3 eye = Point3(-500,0,0);
+			Point3 samplePoint = Point3(0, (x - info.width / 2.0f), (y - info.height / 2.0f));
 			Ray3 ray = Ray3(eye, samplePoint);
 
-			Sphere3 sphere0 = Sphere3(10, 0, 0, 10);
+			Sphere3 sphere0 = Sphere3(40, 40, 100, 100);
+			Sphere3 sphere1 = Sphere3(80, 0, 0, 100);
 
-			if(sphere0.IntersectionTest(ray) >= 0.0f)
-				*p = RGBAtoU32(0, 254, 0);
-			else
-				*p = RGBAtoU32(254, 0, 0);
+			float dist = FLT_MAX;
+			int visibleSphere = -1;
+
+			float this_dist = sphere0.IntersectionTest(ray);
+			if(this_dist >= 0 && this_dist < dist) {
+				dist = this_dist;
+				visibleSphere = 0;
+			}
+
+			this_dist = sphere1.IntersectionTest(ray);
+			if(this_dist >= 0 && this_dist < dist) {
+				dist = this_dist;
+				visibleSphere = 1;
+			}
+
+			if(visibleSphere == 0)
+				*p = RGBAtoU32(0, constrain(dist), 0);
+			else if(visibleSphere == 1)
+				*p = RGBAtoU32(constrain(dist), 0, 0);
 		}
 	}
 }

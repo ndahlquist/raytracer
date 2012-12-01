@@ -1,16 +1,15 @@
-// Point3.h
+
 #ifndef __Point3_H__
 #define __Point3_H__
 
-#include <math.h>
+#include <math.h> // We will need some math.
 
 #include "Vector3.h"
 
 /**
 *  Simple struct to represent 3D points
 */
-struct Point3
-{
+struct Point3 {
 
     inline Point3() {
     	this->x = 0.0f;
@@ -22,7 +21,11 @@ struct Point3
     	this->y = y;
     	this->z = z;
     }
-   // inline explicit Point3(const STVector3& v);
+    inline explicit Point3(const Vector3& v) {
+    	this->x = v.x;
+    	this->y = v.y;
+    	this->z = v.z;
+    }
 
     //inline Point3& operator+=(const STVector3& right);
   //  inline Point3& operator-=(const STVector3& right);
@@ -37,7 +40,9 @@ struct Point3
     * Returns distance squared between two points
     * Called as Point3::DistSq(left, right)
     */
-    //static inline float DistSq(const Point3& left, const Point3& right);
+    static inline float DistSq(const Point3& left, const Point3& right) {
+    	return pow(left.x - right.x, 2) + pow(left.y - right.y, 2) + pow(left.z - right.z, 2);
+    }
 
     float x, y, z;
 };
@@ -46,7 +51,9 @@ inline Vector3 operator-(const Point3& left, const Point3& right) {
 	return Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
 }
 
-//inline Point3 operator+(const Point3& left, const STVector3& right);
+inline Point3 operator+(const Point3& left, const Vector3& right) {
+	return Point3(left.x + right.x, left.y + right.y, left.z + right.z);
+}
 //inline Point3 operator+(const STVector3& left, const Point3& right);
 //inline Point3 operator-(const Point3& left, const STVector3& right);
 

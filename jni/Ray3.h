@@ -22,6 +22,12 @@ struct Ray3
 		this->vector = endpoint - origin;
 	}
 
+	inline Point3 extend(float dist) const {
+		Vector3 newVector = vector;
+		newVector.Normalize();
+		newVector *= dist;
+		return endpoint + newVector;
+	}
 	/*
     //
     // Assignment
