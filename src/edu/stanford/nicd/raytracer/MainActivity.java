@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
 	class RaytraceTask extends AsyncTask<Integer, Void, Bitmap> {
 	    private boolean terminateThread = false;
 		private long lastMeterTime = 0;
-		private int lastMeterFrame = 0;
+		private long numRays = 0;
 
 	    public RaytraceTask() {
 	        lastMeterTime = System.currentTimeMillis();
@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
 			}
 			int frame = 0;
 			while(!terminateThread) {
-				RayTrace(mImage, frame++);
+				numRays += RayTrace(mImage, frame++);
 				publishProgress();
 			}
 	        return mImage;
@@ -73,12 +73,11 @@ public class MainActivity extends Activity {
 	            Drawable d = new BitmapDrawable(getResources(), mImage);
 	            mLinearLayout.setBackgroundDrawable(d);
 	        }
-	        lastMeterFrame++;
-    		if(System.currentTimeMillis() - lastMeterTime >= 1000) {
-    			float FramesPerSecond = lastMeterFrame / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
-    			((TextView) findViewById(R.id.FPS)).setText("FPS: " + String.format("%.2f", FramesPerSecond));
+    		if(System.currentTimeMillis() - lastMeterTime >= 5000) {
+    			float RaysPerSecond = numRays / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
+    			((TextView) findViewById(R.id.FPS)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Rays/Second");
     			lastMeterTime = System.currentTimeMillis();
-    			lastMeterFrame = 0;
+    			numRays = 0;
     		}
 	    }
 	}
@@ -88,5 +87,5 @@ public class MainActivity extends Activity {
 		System.loadLibrary("plasma");
 	}
 
-	private static native void RayTrace(Bitmap output, int frame);
+	private static native int RayTrace(Bitmap output, int frame);
 }

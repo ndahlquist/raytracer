@@ -35,6 +35,7 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 }
 
 static int num_threads = 8;
+static int num_rays;
 #define COLOR_MIX_BIAS 1.0f
 
 struct thread_args {
@@ -45,7 +46,7 @@ struct thread_args {
 	int threadNum;
 };
 
-void * f1(void * ptr){
+void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
 		for(int x = 0; x < args.info->width; x++) {
@@ -65,11 +66,13 @@ void * f1(void * ptr){
 			*p = RGBAtoU32(newR * COLOR_MIX_BIAS + oldR * (1-COLOR_MIX_BIAS),
 					       newG * COLOR_MIX_BIAS + oldG * (1-COLOR_MIX_BIAS),
 					       newB * COLOR_MIX_BIAS + oldB * (1-COLOR_MIX_BIAS));
+
+			num_rays++;
 		}
 	}
 }
 
-static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
+static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame) {
 
 	Scene mScene;
 	frame /= 4;
@@ -101,7 +104,7 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 		args->scene = &mScene;
 		args->threadNum = i;
 		threads[i] = new pthread_t;
-		pthread_create(threads[i],NULL,&f1,(void *)args);
+		pthread_create(threads[i],NULL,&workerThread,(void *)args);
 
 	}
 	for(int i=0; i < num_threads; i++) {
@@ -113,18 +116,20 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 /*******************************************************************************************/
 
 extern "C"
-JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jint frame) {
+JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jint frame) {
 
 	AndroidBitmapInfo info;
 	void * mPixels;
 
 	if(!VerifyBitmap(env, mBitmap, info))
-		return;
+		return 0;
 
 	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
 		LOGE("AndroidBitmap_lockPixels() failed!");
 
-	FunnyColors(info, mPixels, frame);
+	num_rays = 0;
+	ThreadedRayTrace(info, mPixels, frame);
 	AndroidBitmap_unlockPixels(env, mBitmap);
+	return num_rays;
 
 }
