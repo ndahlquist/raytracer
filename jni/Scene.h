@@ -15,7 +15,7 @@ class Scene {
 public:
 
 	Scene() {
-		colorBackground = RGBAtoU32(30, 30, 30);
+		colorBackground = RGBAtoU32(0, 0, 0);
 	}
 
 	void Add(Sphere3 sphere) {

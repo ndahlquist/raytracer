@@ -35,6 +35,8 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 }
 
 static int num_threads = 8;
+#define COLOR_MIX_BIAS 1.0f
+
 struct thread_args {
 	AndroidBitmapInfo * info;
 	void * pixels;
@@ -47,16 +49,22 @@ void * f1(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
 		for(int x = 0; x < args.info->width; x++) {
-			if(rand() % 5 < 4)
+			if(rand() % 6 < 5)
 				continue;
-			uint8_t R, G, B;
-			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
-			RGBAfromU32(*p, R, G, B);
 
 			Point3 eye = Point3(-800,0,0);
 			Point3 samplePoint = Point3(0, (x - args.info->width / 2.0f)/2.0f, (y - args.info->height / 2.0f)/2.0f);
 			Ray3 ray = Ray3(eye, samplePoint);
-			*p = args.scene->TraceRay(ray);
+			uint32_t newSample = args.scene->TraceRay(ray);
+
+			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
+			//*p = newSample;
+			uint8_t newR, newG, newB, oldR, oldG, oldB;
+			RGBAfromU32(newSample, newR, newG, newB);
+			RGBAfromU32(*p, oldR, oldG, oldB);
+			*p = RGBAtoU32(newR * COLOR_MIX_BIAS + oldR * (1-COLOR_MIX_BIAS),
+					       newG * COLOR_MIX_BIAS + oldG * (1-COLOR_MIX_BIAS),
+					       newB * COLOR_MIX_BIAS + oldB * (1-COLOR_MIX_BIAS));
 		}
 	}
 }

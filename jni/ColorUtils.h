@@ -15,6 +15,14 @@ static __inline__ uint32_t RGBAtoU32(const uint8_t R, const uint8_t G, const uin
 	return output;
 }
 
+static __inline__ uint32_t RGBAtoU32(const uint8_t R, const uint8_t G, const uint8_t B, const uint8_t A) {
+	uint32_t output = R;
+	output |= G << 8;
+	output |= B << 16;
+	output |= A << 24;
+	return output;
+}
+
 static __inline__ float constrain(float x) {
 	if(x < 0)
 		return 0;

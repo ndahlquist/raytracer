@@ -22,7 +22,9 @@ struct Sphere3 {
 	}
 
 	inline void SetMaterial(const uint32_t colorDiffuse) {
-		SetMaterial(RGBAtoU32(0, 0, 0), colorDiffuse, RGBAtoU32(200, 200, 200));
+		uint8_t R, G, B;
+		RGBAfromU32(colorDiffuse, R, G, B);
+		SetMaterial(RGBAtoU32(R/4, G/4, B/4), colorDiffuse, RGBAtoU32(200, 200, 200));
 	}
 
 	inline void SetMaterial(const uint32_t colorAmbient, const uint32_t colorDiffuse, const uint32_t colorSpecular) {
