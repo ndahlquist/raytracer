@@ -39,7 +39,7 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
-	mScene.Add(sphere0);
+	//mScene.Add(sphere0);
 
 	Sphere3 sphere1 = Sphere3(100, 120, -90, 100);
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));

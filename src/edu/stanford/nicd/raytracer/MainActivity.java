@@ -6,9 +6,8 @@ import java.lang.ref.WeakReference;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.RadioButton;
+import android.widget.TextView;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -23,13 +22,15 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.main);
-		((RadioButton) findViewById(R.id.radioOriginal)).toggle();
-		((CheckBox) findViewById(R.id.checkBoxMapping)).toggle();
-
 		mImageView = (ImageView) findViewById(R.id.imageView1);
-		
-		recomputeImages();
 	}
+	
+	@Override
+    public void onResume(){
+        super.onResume();
+        raytraceThread = new BitmapWorkerTask(mImageView);
+		raytraceThread.execute(0);
+    }
 	
 	@Override
     public void onPause(){
@@ -37,36 +38,21 @@ public class MainActivity extends Activity {
         raytraceThread.done=true;
     }
 
-
-	private void recomputeImages() {
-		
-		raytraceThread = new BitmapWorkerTask(mImageView);
-		raytraceThread.execute(0);
-		
-		/*if(mImage == null) {
-			final BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inScaled = false;	// No pre-scaling
-			mImage = BitmapFactory.decodeResource(getResources(), R.drawable.tahoe, options);
-		}
-		RayTrace(mImage);
-		ImageView mImageView = (ImageView) findViewById(R.id.imageView1);
-		mImageView.setImageBitmap(mImage);*/
-	}
-
 	class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
 	    private final WeakReference<ImageView> imageViewReference;
-	    private int data = 0;
 	    private boolean done = false;
+		private long lastMeterTime = 0;
+		private int lastMeterFrame = 0;
 
 	    public BitmapWorkerTask(ImageView imageView) {
 	        // Use a WeakReference to ensure the ImageView can be garbage collected
 	        imageViewReference = new WeakReference<ImageView>(imageView);
+	        lastMeterTime = System.currentTimeMillis();
 	    }
 
-	    // Decode image in background.
+	    // Do raytracing in background
 	    @Override
 	    protected Bitmap doInBackground(Integer... params) {
-	        data = params[0];
 
 			if(mImage == null) {
 				final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -89,18 +75,12 @@ public class MainActivity extends Activity {
 	                imageView.setImageBitmap(mImage);
 	            }
 	        }
-	    	
-	    }
-	    
-	    // Once complete, see if ImageView is still around and set bitmap.
-	    @Override
-	    protected void onPostExecute(Bitmap bitmap) {
-	        if (imageViewReference != null && bitmap != null) {
-	            final ImageView imageView = imageViewReference.get();
-	            if (imageView != null) {
-	                imageView.setImageBitmap(bitmap);
-	            }
-	        }
+    		if(++lastMeterFrame >= 10) {
+    			float FramesPerSecond = lastMeterFrame / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
+    			((TextView) findViewById(R.id.FPS)).setText("FPS: " + String.format("%.2f", FramesPerSecond));
+    			lastMeterTime = System.currentTimeMillis();
+    			lastMeterFrame = 0;
+    		}
 	    }
 	}
 	
