@@ -20,7 +20,11 @@ struct Sphere3 {
 		this->radius = radius;
 	}
 
-	inline void SetMaterial(const uint32_t colorAmbient, const uint32_t colorDiffuse = 0, const uint32_t colorSpecular = 0) {
+	inline void SetMaterial(const uint32_t colorAmbient) {
+		SetMaterial(colorAmbient, colorAmbient, colorAmbient);
+	}
+
+	inline void SetMaterial(const uint32_t colorAmbient, const uint32_t colorDiffuse, const uint32_t colorSpecular) {
 		this->colorAmbient = colorAmbient;
 		this->colorDiffuse = colorDiffuse;
 		this->colorSpecular = colorSpecular;
@@ -46,7 +50,7 @@ struct Sphere3 {
 
 		Vector3 normal = surfacePoint - center;
 		normal.Normalize();
-		Vector3 light = surfacePoint - Point3(0, 100, 100); // TODO
+		Vector3 light = Point3(0, 100, 100) - surfacePoint; // TODO
 		light.Normalize();
 		return std::max(Vector3::Dot(light, normal), 0.0f);
 

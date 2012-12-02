@@ -35,17 +35,20 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 
 static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 
-	Sphere3 sphere0 = Sphere3(80, -90, -100, 100);
+	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
-	Sphere3 sphere1 = Sphere3(80, 0, 0, 100);
+	Sphere3 sphere1 = Sphere3(100, 120, -90, 100);
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
-	Sphere3 sphere2 = Sphere3(90, -40, 40, 100);
+	Sphere3 sphere2 = Sphere3(100, -40, 40, 100);
 	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
+
+	PointLight light0 = PointLight(Point3(0, 100, 100), .01f);
 
 	Scene mScene;
 	mScene.Add(sphere0);
 	mScene.Add(sphere1);
 	mScene.Add(sphere2);
+	mScene.Add(light0);
 
 	for(int y = 0; y < info.height; y++) {
 		for(int x = 0; x < info.width; x++) {
