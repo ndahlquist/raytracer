@@ -9,7 +9,7 @@
         android:id="@+id/imageView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/tahoe"/>
+        android:src="@drawable/background"/>
 
     <TextView
         android:id="@+id/FPS"

@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
 			if(mImage == null) {
 				final BitmapFactory.Options options = new BitmapFactory.Options();
 				options.inScaled = false;	// No pre-scaling
-				mImage = BitmapFactory.decodeResource(getResources(), R.drawable.tahoe, options);
+				mImage = BitmapFactory.decodeResource(getResources(), R.drawable.background, options);
 			}
 			int frame = 0;
 			while(!done) {
@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
 	                imageView.setImageBitmap(mImage);
 	            }
 	        }
-    		if(++lastMeterFrame >= 10) {
+    		if(++lastMeterFrame >= 60) {
     			float FramesPerSecond = lastMeterFrame / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
     			((TextView) findViewById(R.id.FPS)).setText("FPS: " + String.format("%.2f", FramesPerSecond));
     			lastMeterTime = System.currentTimeMillis();

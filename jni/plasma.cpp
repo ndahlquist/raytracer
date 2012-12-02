@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <pthread.h>
 
 #include "ColorUtils.h"
 
@@ -33,6 +34,32 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
+static int num_threads = 8;
+struct thread_args {
+	AndroidBitmapInfo * info;
+	void * pixels;
+	Scene * scene;
+
+	int threadNum;
+};
+
+void * f1(void * ptr){
+	struct thread_args args = * (struct thread_args *) ptr;
+	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
+		for(int x = 0; x < args.info->width; x++) {
+			uint8_t R, G, B;
+			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
+			RGBAfromU32(*p, R, G, B);
+
+			Point3 eye = Point3(-800,0,0);
+			Point3 samplePoint = Point3(0, (x - args.info->width / 2.0f)/2.0f, (y - args.info->height / 2.0f)/2.0f);
+			Ray3 ray = Ray3(eye, samplePoint);
+			*p = args.scene->TraceRay(ray);
+
+		}
+	}
+}
+
 static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 
 	Scene mScene;
@@ -45,7 +72,7 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
 	mScene.Add(sphere1);
 
-	Sphere3 sphere2 = Sphere3(100, -40, 40*sin(frame/10.0f), 40);
+	Sphere3 sphere2 = Sphere3(100, -40, 40*sin(frame/30.0f), 40);
 	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
 	mScene.Add(sphere2);
 
@@ -55,18 +82,21 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
 	//mScene.Add(light1);
 
-	for(int y = 0; y < info.height; y++) {
-		for(int x = 0; x < info.width; x++) {
-			uint8_t R, G, B;
-			uint32_t * p = pixRef(info, pixels, x, y);
-			RGBAfromU32(*p, R, G, B);
+	pthread_t * threads[num_threads];
 
-			Point3 eye = Point3(-800,0,0);
-			Point3 samplePoint = Point3(0, (x - info.width / 2.0f)/2.0f, (y - info.height / 2.0f)/2.0f);
-			Ray3 ray = Ray3(eye, samplePoint);
-			*p = mScene.TraceRay(ray);
+	for(int i=0; i < num_threads; i++) {
+		struct thread_args * args = new struct thread_args;
+		args->info = &info;
+		args->pixels = pixels;
+		args->scene = &mScene;
+		args->threadNum = i;
+		threads[i] = new pthread_t;
+		pthread_create(threads[i],NULL,&f1,(void *)args);
 
-		}
+	}
+	for(int i=0; i < num_threads; i++) {
+		pthread_join(*threads[i], NULL);
+		//delete threads[i];
 	}
 }
 
