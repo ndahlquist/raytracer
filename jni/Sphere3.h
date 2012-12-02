@@ -3,6 +3,7 @@
 #define __SPHERE3_H__
 
 #include <math.h> // We will need some math.
+#include <algorithm>
 
 #include "Point3.h"
 #include "Vector3.h"
@@ -19,7 +20,12 @@ struct Sphere3 {
 		this->radius = radius;
 	}
 
-	// Adapted from http://www.ccs.neu.edu/home/fell/CSU540/programs/RayTracingFormulas.htm
+	inline void SetMaterial(const uint32_t colorAmbient, const uint32_t colorDiffuse = 0, const uint32_t colorSpecular = 0) {
+		this->colorAmbient = colorAmbient;
+		this->colorDiffuse = colorDiffuse;
+		this->colorSpecular = colorSpecular;
+	}
+
 	float IntersectionTest(Ray3 ray) {
 
 		Vector3 relativeCenter = center - ray.endpoint;
@@ -32,28 +38,28 @@ struct Sphere3 {
 		if(pow(radius, 2) < distSquared)
 			return -1;
 
-		return (projection - ray.endpoint).Length() - sqrt(pow(radius, 2) - distSquared); // TODO: sqrt
-
-
-
-
-		//float dil = Point3::DistSq(projection, ray.endpoint) - a;
-		//return Point3::DistSq(closestToCenter, center);
-
-
-		/*float a = pow(ray.vector.x, 2) + pow(ray.vector.y, 2) + pow(ray.vector.z, 2);
-		float b = 2*ray.vector.x*(ray.endpoint.x - center.x) + 2*ray.vector.y*(ray.endpoint.y - center.y) + 2*ray.vector.z*(ray.endpoint.z - center.z);
-		float c = pow(center.x, 2) + pow(center.y, 2) + pow(center.z, 2) +
-				  pow(ray.endpoint.x, 2) + pow(ray.endpoint.y, 2) + pow(ray.endpoint.z, 2) +
-                  -2*(center.x*ray.endpoint.x + center.y*ray.endpoint.y + center.z*ray.endpoint.z) - pow(radius, 2);
-		if(pow(b, 2) - 4*a*c < 0)
-			return -1;
-		return (-b - sqrt(pow(b, 2) - 4*a*c) / (2*a));*/
+		return (projection - ray.endpoint).Length() - sqrt(pow(radius, 2) - distSquared); // TODO: sqrt optimization
 	}
+
+
+	float DiffuseIllumination(Point3 surfacePoint) {
+
+		Vector3 normal = surfacePoint - center;
+		normal.Normalize();
+		Vector3 light = surfacePoint - Point3(0, 100, 100); // TODO
+		light.Normalize();
+		return std::max(Vector3::Dot(light, normal), 0.0f);
+
+	}
+	//Ray3 ReflectRay(Ray3 incidentRay, float length = -1) {
+	//}
 
 	// Local members:
 	Point3 center;
 	float radius;
+	uint32_t colorAmbient;
+	uint32_t colorDiffuse;
+	uint32_t colorSpecular;
 };
 
 #endif  // __SPHERE3_H__

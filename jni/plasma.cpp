@@ -20,8 +20,6 @@
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-
-
 static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info) {
 	int ret;
 	if((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
@@ -36,25 +34,28 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 }
 
 static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
+
+	Sphere3 sphere0 = Sphere3(80, -90, -100, 100);
+	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
+	Sphere3 sphere1 = Sphere3(80, 0, 0, 100);
+	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
+	Sphere3 sphere2 = Sphere3(90, -40, 40, 100);
+	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
+
+	Scene mScene;
+	mScene.Add(sphere0);
+	mScene.Add(sphere1);
+	mScene.Add(sphere2);
+
 	for(int y = 0; y < info.height; y++) {
 		for(int x = 0; x < info.width; x++) {
 			uint8_t R, G, B;
 			uint32_t * p = pixRef(info, pixels, x, y);
 			RGBAfromU32(*p, R, G, B);
 
-
 			Point3 eye = Point3(-500,0,0);
 			Point3 samplePoint = Point3(0, (x - info.width / 2.0f), (y - info.height / 2.0f));
 			Ray3 ray = Ray3(eye, samplePoint);
-
-			Sphere3 sphere0 = Sphere3(40, 40, 100, 100);
-			Sphere3 sphere1 = Sphere3(80, 0, 0, 100);
-			Sphere3 sphere2 = Sphere3(90, -40, 40, 100);
-
-			Scene mScene;
-			mScene.Add(sphere0);
-			mScene.Add(sphere1);
-			mScene.Add(sphere2);
 			*p = mScene.TraceRay(ray);
 
 		}

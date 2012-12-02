@@ -13,7 +13,9 @@
 class Scene {
 public:
 
-	Scene() { }
+	Scene() {
+		colorBackground = RGBAtoU32(0, 0, 0);
+	}
 
 	void Add(Sphere3 sphere) {
 		elements.push_back(sphere);
@@ -23,8 +25,6 @@ public:
 
 		float dist = FLT_MAX;
 		int visibleSphere = -1;
-
-
 		for(int i=0; i < elements.size(); i++) {
 			float this_dist = elements[i].IntersectionTest(ray);
 			if(this_dist >= 0 && this_dist < dist) {
@@ -33,15 +33,17 @@ public:
 			}
 		}
 
-		if(visibleSphere == 0)
-			return RGBAtoU32(0, constrain(dist), 0);
-		else if(visibleSphere == 1)
-			return RGBAtoU32(constrain(dist), 0, 0);
-		else if(visibleSphere == 2)
-			return RGBAtoU32(0, 0, constrain(dist));
-		else
-			return RGBAtoU32(0, 100, 100);
+		if(visibleSphere == -1)
+			return colorBackground;
+
+		float diffuseMultiplier = elements[visibleSphere].DiffuseIllumination(ray.extend(dist));
+		return RGBAtoU32(0, 100* diffuseMultiplier, 0);
+		//Ray3 reflection = elements[visibleSphere].ReflectRay(ray, dist);
+
+			return elements[visibleSphere].colorAmbient;
 	}
+
+	uint32_t colorBackground;
 
 private:
 	std::vector<Sphere3> elements;
