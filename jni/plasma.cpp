@@ -33,7 +33,7 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
-static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
+static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 
 	Scene mScene;
 
@@ -45,7 +45,7 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
 	mScene.Add(sphere1);
 
-	Sphere3 sphere2 = Sphere3(100, -40, 40, 100);
+	Sphere3 sphere2 = Sphere3(100, -40, 40*sin(frame/10.0f), 40);
 	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
 	mScene.Add(sphere2);
 
@@ -73,7 +73,7 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 /*******************************************************************************************/
 
 extern "C"
-JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_NonstandardWaveletRecompose(JNIEnv * env, jobject obj, jobject mBitmap) {
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jint frame) {
 
 	AndroidBitmapInfo info;
 	void * mPixels;
@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Nonstandard
 	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
 		LOGE("AndroidBitmap_lockPixels() failed!");
 
-	FunnyColors(info, mPixels);
+	FunnyColors(info, mPixels, frame);
 	AndroidBitmap_unlockPixels(env, mBitmap);
 
 }
