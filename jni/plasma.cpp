@@ -8,71 +8,19 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "ColorUtils.h"
+
 #include "Point3.h"
 #include "Vector3.h"
 #include "Ray3.h"
 #include "Sphere3.h"
+#include "Scene.h"
 
 #define  LOG_TAG    "libplasma"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-static void RGBAfromU32(const uint32_t in, uint8_t & R, uint8_t & G, uint8_t & B) {
-	R = in;
-	G = in >> 8;
-	B = in >> 16;
-}
 
-static __inline__ uint32_t RGBAtoU32(const uint8_t R, const uint8_t G, const uint8_t B) {
-	uint32_t output = R;
-	output |= G << 8;
-	output |= B << 16;
-	return output;
-}
-
-static __inline__ float constrain(float x) {
-	if(x < 0)
-		return 0;
-	else if(x > 255)
-		return 255;
-	return x;
-}
-
-static __inline__ uint32_t * pixRef(AndroidBitmapInfo & info, void * pixels, unsigned int x, unsigned int y) {
-	pixels = (char*) pixels + y * info.stride;
-	uint32_t * line = (uint32_t *) pixels;
-	return line + x;
-}
-
-float * getPixel(float * inputPixels, unsigned int x, unsigned int y, unsigned int channel, unsigned int width) {
-	return inputPixels + 3 * y * width  + 3 * x + channel;
-}
-
-void U32BuftoFloatBuf(void * inputPixels, float * outputBuffer, int length) {
-	for(int i = 0; i < length; i++) {
-		uint32_t * p = (uint32_t *) inputPixels;
-		p += i;
-		uint8_t R, G, B;
-		RGBAfromU32(*p, R, G, B);
-
-		*(outputBuffer + 3*i) = R;
-		*(outputBuffer + 3*i + 1) = G;
-		*(outputBuffer + 3*i + 2) = B;
-	}
-}
-
-void FloatBuftoU32Buf(float * inputBuffer, void * outputPixels, int length) {
-	for(int i = 0; i < length; i++) {
-		uint8_t R, G, B;
-		R = *(inputBuffer + 3*i);
-		G = *(inputBuffer + 3*i + 1);
-		B = *(inputBuffer + 3*i + 2);
-
-		uint32_t * p = (uint32_t *) outputPixels;
-		p += i;
-		*p = RGBAtoU32(R, G, B);
-	}
-}
 
 static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info) {
 	int ret;
@@ -101,26 +49,14 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 
 			Sphere3 sphere0 = Sphere3(40, 40, 100, 100);
 			Sphere3 sphere1 = Sphere3(80, 0, 0, 100);
+			Sphere3 sphere2 = Sphere3(90, -40, 40, 100);
 
-			float dist = FLT_MAX;
-			int visibleSphere = -1;
+			Scene mScene;
+			mScene.Add(sphere0);
+			mScene.Add(sphere1);
+			mScene.Add(sphere2);
+			*p = mScene.TraceRay(ray);
 
-			float this_dist = sphere0.IntersectionTest(ray);
-			if(this_dist >= 0 && this_dist < dist) {
-				dist = this_dist;
-				visibleSphere = 0;
-			}
-
-			this_dist = sphere1.IntersectionTest(ray);
-			if(this_dist >= 0 && this_dist < dist) {
-				dist = this_dist;
-				visibleSphere = 1;
-			}
-
-			if(visibleSphere == 0)
-				*p = RGBAtoU32(0, constrain(dist), 0);
-			else if(visibleSphere == 1)
-				*p = RGBAtoU32(constrain(dist), 0, 0);
 		}
 	}
 }

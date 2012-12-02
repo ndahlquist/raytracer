@@ -1,6 +1,6 @@
 
 #ifndef __SPHERE3_H__
-#define __SHPERE3_H__
+#define __SPHERE3_H__
 
 #include <math.h> // We will need some math.
 
