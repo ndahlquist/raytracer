@@ -8,6 +8,7 @@
 #include "Point3.h"
 #include "Vector3.h"
 #include "Ray3.h"
+#include "Light.h"
 
 struct Sphere3 {
 
@@ -20,8 +21,8 @@ struct Sphere3 {
 		this->radius = radius;
 	}
 
-	inline void SetMaterial(const uint32_t colorAmbient) {
-		SetMaterial(colorAmbient, colorAmbient, colorAmbient);
+	inline void SetMaterial(const uint32_t colorDiffuse) {
+		SetMaterial(RGBAtoU32(0, 0, 0), colorDiffuse, RGBAtoU32(200, 200, 200));
 	}
 
 	inline void SetMaterial(const uint32_t colorAmbient, const uint32_t colorDiffuse, const uint32_t colorSpecular) {
@@ -46,17 +47,23 @@ struct Sphere3 {
 	}
 
 
-	float DiffuseIllumination(Point3 surfacePoint) {
+	float DiffuseIllumination(Point3 surfacePoint, PointLight pLight) {
 
 		Vector3 normal = surfacePoint - center;
 		normal.Normalize();
-		Vector3 light = Point3(0, 100, 100) - surfacePoint; // TODO
+		Vector3 light = pLight.position - surfacePoint;
 		light.Normalize();
 		return std::max(Vector3::Dot(light, normal), 0.0f);
 
 	}
-	//Ray3 ReflectRay(Ray3 incidentRay, float length = -1) {
-	//}
+
+	Ray3 ReflectRay(Ray3 incidentRay, float length) {
+		incidentRay.vector.Normalize();
+		Vector3 normal = incidentRay.extend(length) - center;
+		normal.Normalize();
+		Vector3 reflectedVector = 2.0f * Vector3::Dot(-incidentRay.vector, normal) * normal + incidentRay.vector;
+		return Ray3(incidentRay.extend(length), reflectedVector); // TODO
+	}
 
 	// Local members:
 	Point3 center;

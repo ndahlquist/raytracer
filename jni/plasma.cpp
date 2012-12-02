@@ -35,20 +35,25 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 
 static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 
+	Scene mScene;
+
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
+	mScene.Add(sphere0);
+
 	Sphere3 sphere1 = Sphere3(100, 120, -90, 100);
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
+	mScene.Add(sphere1);
+
 	Sphere3 sphere2 = Sphere3(100, -40, 40, 100);
 	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
+	mScene.Add(sphere2);
 
 	PointLight light0 = PointLight(Point3(0, 100, 100), .01f);
-
-	Scene mScene;
-	mScene.Add(sphere0);
-	mScene.Add(sphere1);
-	mScene.Add(sphere2);
 	mScene.Add(light0);
+
+	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
+	//mScene.Add(light1);
 
 	for(int y = 0; y < info.height; y++) {
 		for(int x = 0; x < info.width; x++) {
@@ -56,8 +61,8 @@ static void FunnyColors(AndroidBitmapInfo & info, void * pixels) {
 			uint32_t * p = pixRef(info, pixels, x, y);
 			RGBAfromU32(*p, R, G, B);
 
-			Point3 eye = Point3(-500,0,0);
-			Point3 samplePoint = Point3(0, (x - info.width / 2.0f), (y - info.height / 2.0f));
+			Point3 eye = Point3(-800,0,0);
+			Point3 samplePoint = Point3(0, (x - info.width / 2.0f)/2.0f, (y - info.height / 2.0f)/2.0f);
 			Ray3 ray = Ray3(eye, samplePoint);
 			*p = mScene.TraceRay(ray);
 

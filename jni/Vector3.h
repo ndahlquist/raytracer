@@ -122,12 +122,21 @@ struct Vector3
 
 };
 
-/*inline Vector3 operator*(const Vector3& left, float right);
-inline Vector3 operator*(float left, const Vector3& right);
+inline Vector3 operator*(const Vector3& left, float right);
+inline Vector3 operator*(float left, const Vector3& right) {
+	return Vector3(left * right.x, left * right.y, left * right.z);
+}
 inline Vector3 operator/(const Vector3& left, float right);
-inline Vector3 operator+(const Vector3& left, const Vector3& right);
-inline Vector3 operator-(const Vector3& left, const Vector3& right);
-inline Vector3 operator-(const Vector3& v);*/
+inline Vector3 operator+(const Vector3& left, const Vector3& right) {
+	return Vector3(left.x + right.x, left.y + right.y, left.z + right.z);
+}
+inline Vector3 operator-(const Vector3& left, const Vector3& right) {
+	return Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
+}
+
+inline Vector3 operator-(const Vector3& v) {
+	return Vector3(-v.x, -v.y, -v.z);
+}
 
 //inline Vector3 operator-(const Point3& left, const Point3& right)
 

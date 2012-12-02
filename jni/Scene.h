@@ -15,7 +15,7 @@ class Scene {
 public:
 
 	Scene() {
-		colorBackground = RGBAtoU32(0, 100, 100);
+		colorBackground = RGBAtoU32(0, 0, 0);
 	}
 
 	void Add(Sphere3 sphere) {
@@ -26,7 +26,7 @@ public:
 		lights.push_back(light);
 	}
 
-	uint32_t TraceRay(Ray3 ray) {
+	uint32_t TraceRay(Ray3 ray, int recursion = 5) {
 
 		float dist = FLT_MAX;
 		int visibleSphere = -1;
@@ -41,13 +41,17 @@ public:
 		if(visibleSphere == -1)
 			return colorBackground;
 
-		float R=0;
-		float G=0;
-		float B=0;
+		// Ambient / emissive
 		uint8_t matR, matG, matB;
+		RGBAfromU32(elements[visibleSphere].colorAmbient, matR, matG, matB);
+		float R=matR;
+		float G=matG;
+		float B=matB;
+
+		// Diffuse
 		RGBAfromU32(elements[visibleSphere].colorDiffuse, matR, matG, matB);
 		for(int i=0; i < lights.size(); i++) {
-			float diffuseMultiplier = elements[visibleSphere].DiffuseIllumination(ray.extend(dist)); // TODO
+			float diffuseMultiplier = elements[visibleSphere].DiffuseIllumination(ray.extend(dist), lights[i]);
 			diffuseMultiplier *= lights[i].brightness;
 			uint8_t lightR, lightG, lightB;
 			RGBAfromU32(lights[i].color, lightR, lightG, lightB);
@@ -55,6 +59,22 @@ public:
 			G += diffuseMultiplier * lightG * matG;
 			B += diffuseMultiplier * lightB * matB;
 		}
+
+
+		if(recursion <= 0)
+			return RGBAtoU32(constrain(R), constrain(G), constrain(B));
+		recursion--;
+
+		// Specular / reflective
+		RGBAfromU32(elements[visibleSphere].colorSpecular, matR, matG, matB);
+		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
+		uint32_t reflectedColor = this->TraceRay(reflectedRay, recursion);
+		uint8_t rR, rG, rB;
+		RGBAfromU32(reflectedColor, rR, rG, rB);
+		R += .7 * rR;
+		G += .7 * rG;
+		B += .7 * rB;
+
 		return RGBAtoU32(constrain(R), constrain(G), constrain(B));
 		//Ray3 reflection = elements[visibleSphere].ReflectRay(ray, dist);
 	}
