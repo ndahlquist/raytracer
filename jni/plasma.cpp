@@ -47,6 +47,8 @@ void * f1(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
 		for(int x = 0; x < args.info->width; x++) {
+			if(rand() % 5 < 4)
+				continue;
 			uint8_t R, G, B;
 			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
 			RGBAfromU32(*p, R, G, B);
@@ -55,7 +57,6 @@ void * f1(void * ptr){
 			Point3 samplePoint = Point3(0, (x - args.info->width / 2.0f)/2.0f, (y - args.info->height / 2.0f)/2.0f);
 			Ray3 ray = Ray3(eye, samplePoint);
 			*p = args.scene->TraceRay(ray);
-
 		}
 	}
 }
@@ -63,20 +64,21 @@ void * f1(void * ptr){
 static void FunnyColors(AndroidBitmapInfo & info, void * pixels, int frame) {
 
 	Scene mScene;
+	frame /= 4;
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
-	//mScene.Add(sphere0);
+	mScene.Add(sphere0);
 
-	Sphere3 sphere1 = Sphere3(100, 120, -90, 100);
+	Sphere3 sphere1 = Sphere3(100, 80+40*sin(frame/34.0f + 6), -90*sin(frame/43.0f), 50);
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
 	mScene.Add(sphere1);
 
-	Sphere3 sphere2 = Sphere3(100, -40, 40*sin(frame/30.0f), 40);
+	Sphere3 sphere2 = Sphere3(100, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f), 40);
 	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
 	mScene.Add(sphere2);
 
-	PointLight light0 = PointLight(Point3(0, 100, 100), .01f);
+	PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
 	mScene.Add(light0);
 
 	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);

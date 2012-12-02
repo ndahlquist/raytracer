@@ -43,7 +43,7 @@ struct Sphere3 {
 		if(pow(radius, 2) < distSquared)
 			return -1;
 
-		return (projection - ray.endpoint).Length() - sqrt(pow(radius, 2) - distSquared); // TODO: sqrt optimization
+		return (projection - ray.endpoint).Length() - sqrt(pow(radius, 2) - distSquared);
 	}
 
 
@@ -62,7 +62,7 @@ struct Sphere3 {
 		Vector3 normal = incidentRay.extend(length) - center;
 		normal.Normalize();
 		Vector3 reflectedVector = 2.0f * Vector3::Dot(-incidentRay.vector, normal) * normal + incidentRay.vector;
-		return Ray3(incidentRay.extend(length), reflectedVector); // TODO
+		return Ray3(incidentRay.extend(length), reflectedVector);
 	}
 
 	// Local members:

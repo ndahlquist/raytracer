@@ -75,7 +75,8 @@ public class MainActivity extends Activity {
 	                imageView.setImageBitmap(mImage);
 	            }
 	        }
-    		if(++lastMeterFrame >= 60) {
+	        lastMeterFrame++;
+    		if(System.currentTimeMillis() - lastMeterTime >= 1000) {
     			float FramesPerSecond = lastMeterFrame / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
     			((TextView) findViewById(R.id.FPS)).setText("FPS: " + String.format("%.2f", FramesPerSecond));
     			lastMeterTime = System.currentTimeMillis();
