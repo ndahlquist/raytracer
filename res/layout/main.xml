@@ -7,22 +7,27 @@
     android:orientation="vertical" >
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="Amortized Stats:"
-        android:text="Amortized Stats:"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-    
-    <TextView
         android:id="@+id/RaysPerSecond"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium" />
+	    
+	    <TextView
+	        android:id="@+id/FramesPerSecond"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
     
-    <TextView
-        android:id="@+id/FramesPerSecond"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+	     <CheckBox
+	        android:id="@+id/checkBoxSampling"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Adaptive Sampling"
+        	android:textAppearance="?android:attr/textAppearanceMedium"  />
+    
+    <SeekBar
+        android:id="@+id/seekBarSpeed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

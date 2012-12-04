@@ -109,7 +109,7 @@ struct Sphere3 {
 		float specular = Vector3::Dot(Normal, -HalfwayVector);
 		if(specular <= 0)
 			return 0;
-		return pow(specular, 512) / 100.0f;
+		return pow(specular, 512);
 	}
 
 	Ray3 ReflectRay(Ray3 incidentRay, float length) {

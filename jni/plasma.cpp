@@ -35,6 +35,7 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
+static bool HeatMapEnabled;
 static HeatMap * interestMap;
 static int num_threads = 8;
 static int num_rays;
@@ -43,7 +44,6 @@ struct thread_args {
 	AndroidBitmapInfo * info;
 	void * pixels;
 	Scene * scene;
-
 	int threadNum;
 };
 
@@ -53,7 +53,7 @@ void * workerThread(void * ptr){
 		for(int y = 0; y < args.info->height; y++) {
 			if((x*x*x + y) % num_threads != args.threadNum)
 				continue;
-			if(!interestMap->GetFlip(x, y))
+			if(HeatMapEnabled && !interestMap->GetFlip(x, y))
 				continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			uint32_t newValue = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);
@@ -65,10 +65,11 @@ void * workerThread(void * ptr){
 	return NULL;
 }
 
-static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int nframe) {
+static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeElapsed) {
 
 	Scene mScene;
-	float frame = (float) nframe / 500.0f;
+	static float frame;
+	frame += timeElapsed / 3000.0f;
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
@@ -138,7 +139,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 }
 
 extern "C"
-JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jint frame) {
+JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jlong timeElapsed) {
 
 	AndroidBitmapInfo info;
 	void * mPixels;
@@ -150,8 +151,13 @@ JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JN
 		LOGE("AndroidBitmap_lockPixels() failed!");
 
 	num_rays = 0;
-	ThreadedRayTrace(info, mPixels, frame);
+	ThreadedRayTrace(info, mPixels, timeElapsed);
 	AndroidBitmap_unlockPixels(env, mBitmap);
 	return num_rays;
 
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_ToggleAdaptiveSampling(JNIEnv * env, jobject obj, jboolean enabled) {
+	HeatMapEnabled = enabled;
 }

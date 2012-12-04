@@ -4,7 +4,12 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Display;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -16,6 +21,7 @@ public class MainActivity extends Activity {
 	private Bitmap mImage;
 	private LinearLayout mLinearLayout;
 	private RaytraceTask raytraceThread;
+	int animationSpeed;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -23,6 +29,25 @@ public class MainActivity extends Activity {
 
 		setContentView(R.layout.main);
 		mLinearLayout = (LinearLayout) findViewById(R.id.background);
+		
+		CheckBox checkBoxSampling = (CheckBox) findViewById(R.id.checkBoxSampling);
+		checkBoxSampling.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				ToggleAdaptiveSampling(isChecked);
+				raytraceThread.startTime = System.currentTimeMillis();
+				raytraceThread.numRays = 0;
+				raytraceThread.numFrames = 0;
+			}
+		});
+		
+		SeekBar seekBarSpeed = (SeekBar) findViewById(R.id.seekBarSpeed);
+		seekBarSpeed.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {       
+				animationSpeed = progress;
+			}
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			public void onStopTrackingTouch(SeekBar seekBar) {}  
+		});
 	}
 	
 	@Override
@@ -40,12 +65,12 @@ public class MainActivity extends Activity {
 
 	class RaytraceTask extends AsyncTask<Integer, Void, Bitmap> {
 	    private boolean terminateThread = false;
-		private long lastMeterTime = 0;
+		private long startTime = 0;
 		private long numRays = 0;
 		private int numFrames = 0;
 		
 	    public RaytraceTask() {
-	        lastMeterTime = System.currentTimeMillis();
+	        startTime = System.currentTimeMillis();
 	    }
 
 	    // Do raytracing in background
@@ -60,8 +85,11 @@ public class MainActivity extends Activity {
 				mImage.setHasAlpha(false);
 			}
 			Initialize(mImage);
+			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
-				numRays += RayTrace(mImage, (int) System.currentTimeMillis());
+				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
+				lastUpdateTime = System.currentTimeMillis();
+				numRays += RayTrace(mImage, animationSpeed * timeElapsed);
 				publishProgress();
 			}
 	        return mImage;
@@ -75,12 +103,10 @@ public class MainActivity extends Activity {
 	            mLinearLayout.setBackgroundDrawable(d);
 	        }
 	        numFrames++;
-    		if(System.currentTimeMillis() - lastMeterTime >= 500) {
-    			float RaysPerSecond = numRays / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
-    			float FramesPerSecond = numFrames / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
-    			((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Primary Rays/Second");
-    			((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
-    		}
+    		float RaysPerSecond = numRays / ((System.currentTimeMillis() - startTime) / 1000.0f);
+    		float FramesPerSecond = numFrames / ((System.currentTimeMillis() - startTime) / 1000.0f);
+    		((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Primary Rays/Second");
+    		((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
 	    }
 	}
 	
@@ -90,5 +116,7 @@ public class MainActivity extends Activity {
 	}
 
 	private static native void Initialize(Bitmap input);
-	private static native int RayTrace(Bitmap output, int frame);
+	private static native int RayTrace(Bitmap output, long timeElapsed);
+	private static native void ToggleAdaptiveSampling(boolean enabled);
+	
 }
