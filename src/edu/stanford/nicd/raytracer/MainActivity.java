@@ -42,7 +42,8 @@ public class MainActivity extends Activity {
 	    private boolean terminateThread = false;
 		private long lastMeterTime = 0;
 		private long numRays = 0;
-
+		private int numFrames = 0;
+		
 	    public RaytraceTask() {
 	        lastMeterTime = System.currentTimeMillis();
 	    }
@@ -74,9 +75,12 @@ public class MainActivity extends Activity {
 	            Drawable d = new BitmapDrawable(getResources(), mImage);
 	            mLinearLayout.setBackgroundDrawable(d);
 	        }
+	        numFrames++;
     		if(System.currentTimeMillis() - lastMeterTime >= 500) {
     			float RaysPerSecond = numRays / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
-    			((TextView) findViewById(R.id.FPS)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Rays/Second");
+    			float FramesPerSecond = numFrames / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
+    			((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Primary Rays/Second");
+    			((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
     		}
 	    }
 	}

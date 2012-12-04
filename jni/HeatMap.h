@@ -1,13 +1,13 @@
 
-#ifndef __INTERESTMAP_H__
-#define __INTERESTMAP_H__
+#ifndef __HEATMAP_H__
+#define __HEATMAP_H__
 
 #include <math.h> // We will need some math.
 #include <algorithm>
 
-class InterestMap {
+class HeatMap {
 public:
-	InterestMap(unsigned int width, unsigned int height, unsigned int frequency=20) {
+	HeatMap(unsigned int width, unsigned int height, unsigned int frequency=20) {
 		this->frequency = frequency;
 		arrayWidth = width / frequency;
 		arrayHeight = height / frequency;
@@ -55,4 +55,4 @@ private:
 	float * map;
 };
 
-#endif  // __INTERESTMAP_H__
+#endif  // __HEATMAP_H__

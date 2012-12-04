@@ -16,7 +16,7 @@
 #include "Ray3.h"
 #include "Sphere3.h"
 #include "Scene.h"
-#include "InterestMap.h"
+#include "HeatMap.h"
 
 #define  LOG_TAG    "libplasma"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -35,7 +35,7 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
-static InterestMap * interestMap = NULL;
+static HeatMap * interestMap;
 static int num_threads = 8;
 static int num_rays;
 
@@ -123,7 +123,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	if(!VerifyBitmap(env, mBitmap, info))
 		return;
 	if(interestMap == NULL)
-		interestMap = new InterestMap(info.width, info.height);
+		interestMap = new HeatMap(info.width, info.height);
 
 }
 
