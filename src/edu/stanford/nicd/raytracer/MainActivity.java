@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
 				mImage.setDensity(Bitmap.DENSITY_NONE);
 				mImage.setHasAlpha(false);
 			}
+			Initialize(mImage);
 			int frame = 0;
 			while(!terminateThread) {
 				numRays += RayTrace(mImage, frame++);
@@ -85,5 +86,6 @@ public class MainActivity extends Activity {
 		System.loadLibrary("plasma");
 	}
 
+	private static native void Initialize(Bitmap input);
 	private static native int RayTrace(Bitmap output, int frame);
 }

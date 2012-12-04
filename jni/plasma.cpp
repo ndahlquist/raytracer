@@ -16,6 +16,7 @@
 #include "Ray3.h"
 #include "Sphere3.h"
 #include "Scene.h"
+#include "InterestMap.h"
 
 #define  LOG_TAG    "libplasma"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -34,6 +35,7 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
+static InterestMap * interestMap = NULL;
 static int num_threads = 8;
 static int num_rays;
 
@@ -49,20 +51,22 @@ void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
 		for(int x = 0; x < args.info->width; x++) {
-			if(rand() % 4 < 3)
+			if(!interestMap->Get(x, y))
 				continue;
-			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
-			*p = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);
+			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
+			uint32_t newValue = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);
+			interestMap->Post(x, y, * oldValue, newValue);
+			* oldValue = newValue;
 			num_rays++;
 		}
 	}
 	return NULL;
 }
 
-static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame) {
+static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int nframe) {
 
 	Scene mScene;
-	frame /= 4;
+	float frame = (float) nframe / 2.0f;
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
@@ -111,6 +115,17 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame)
 }
 
 /*******************************************************************************************/
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(JNIEnv * env, jobject obj, jobject mBitmap) {
+
+	AndroidBitmapInfo info;
+	if(!VerifyBitmap(env, mBitmap, info))
+		return;
+	if(interestMap == NULL)
+		interestMap = new InterestMap(info.width, info.height);
+
+}
 
 extern "C"
 JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jint frame) {
