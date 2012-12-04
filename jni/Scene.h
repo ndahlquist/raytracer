@@ -41,7 +41,7 @@ public:
 		}
 	};
 
-	uint32_t TraceRay(int x, int y, int recursion = 0) {
+	uint32_t TraceRay(int x, int y, int recursion = 5) {
 		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
 		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
 		ray.vector.Normalize();
@@ -51,7 +51,7 @@ public:
 	uint32_t TraceRay(Ray3 ray, int recursion) {
 
 		//if(elements[1].AcceleratedIntersectionTest(ray) == -2)
-		//	return RGBAtoU32(0, 255, 0);
+		//	return RGBAtoU32(255, 0, 0);
 
 		float dist = FLT_MAX;
 		int visibleSphere = -1;
@@ -59,6 +59,8 @@ public:
 			float this_dist;
 			if(ray.endpoint == mCamera.PinHole)
 				this_dist = elements[i].AcceleratedIntersectionTest(ray);
+			else
+				this_dist = elements[i].IntersectionTest(ray);
 			if(this_dist >= 0 && this_dist < dist) {
 				dist = this_dist;
 				visibleSphere = i;

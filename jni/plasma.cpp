@@ -49,7 +49,7 @@ void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
 		for(int x = 0; x < args.info->width; x++) {
-			if(rand() % 3 < 2)
+			if(rand() % 4 < 3)
 				continue;
 			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
 			*p = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);

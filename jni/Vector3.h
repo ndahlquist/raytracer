@@ -99,8 +99,8 @@ struct Vector3
     //
     // Static math functions
     //
-    inline static Vector3 Cross(const Vector3& left, const Vector3& right) {
-    	return Vector3(left.x*right.x, left.y*right.y, left.z*right.z);
+    inline static Vector3 Cross(const Vector3& u, const Vector3& v) {
+    	return Vector3(u.y*v.z - u.z*v.y, u.x*v.z - u.z*v.x, u.x*v.y - u.y*v.x);
     }
     inline static float Dot(const Vector3& left, const Vector3& right) {
     	return left.x*right.x + left.y*right.y + left.z*right.z;
@@ -115,9 +115,11 @@ struct Vector3
 
 };
 
-inline Vector3 operator*(const Vector3& left, float right);
-inline Vector3 operator*(float left, const Vector3& right) {
-	return Vector3(left * right.x, left * right.y, left * right.z);
+inline Vector3 operator*(const Vector3& v, float a) {
+	return Vector3(v.x*a, v.y*a, v.z*a);
+}
+inline Vector3 operator*(float a, const Vector3& v) {
+	return Vector3(v.x*a, v.y*a, v.z*a);
 }
 inline Vector3 operator/(const Vector3& left, float right);
 inline Vector3 operator+(const Vector3& left, const Vector3& right) {

@@ -33,51 +33,43 @@ struct Sphere3 {
 		this->colorSpecular = colorSpecular;
 	}
 
-	/*inline float sign(float x) {
-		if(x >= 0)
-			return 1;
-		return -1;
-	}*/
-
 	void BuildAccelerationStructure(Point3 eye) {
-		Vector3 toCenter = center - eye;
-		toCenter.Normalize(); // TODO
-		Vector3 perpendicular;
-		if(toCenter.y == 0)
-			perpendicular = Vector3(0, 1, 0); // Prevent division by zero.
-		else {
-			Vector3 temp = Vector3::Cross(toCenter, Vector3(0,1,0)); // TODO: simplify this.
-			perpendicular = Vector3::Cross(toCenter, temp);
-		}
-		Vector3 northVector = Ray3(center, perpendicular).extend(radius) - eye;
-		northVector.Normalize();
-		Vector3 southVector = Ray3(center, perpendicular).extend(-radius) - eye;
-		southVector.Normalize();
-		AccelerationStructure.north_bound = northVector.y;
-		AccelerationStructure.south_bound = southVector.y;
 
-		if(toCenter.z == 0) // TODO
-			perpendicular = Vector3(0, 0, 1); // Prevent division by zero.
-		else {
-			Vector3 temp = Vector3::Cross(toCenter, Vector3(0,0,1));
-			perpendicular = Vector3::Cross(toCenter, temp);
-		}
-		Vector3 westVector = Ray3(center, perpendicular).extend(radius) - eye;
-		westVector.Normalize();
-		Vector3 eastVector = Ray3(center, perpendicular).extend(-radius) - eye;
-		eastVector.Normalize();
-		AccelerationStructure.west_bound = westVector.z;
-		AccelerationStructure.east_bound = eastVector.z;
+		Vector3 toCenter = center - eye;
+		float distToTangent = sqrt(toCenter.LengthSq() - radius);
+		toCenter.Normalize();
+		float sinOfAngle = radius / distToTangent;
+		float cosOfAngle = 1 - pow(radius / distToTangent, 2);
+
+		// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,1,0)
+		Vector3 perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,1,0))); // TODO: simplify this.
+		perpendicular.Normalize();
+
+		Vector3 toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
+		AccelerationStructure.east_bound = toTangent.y;
+
+		toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
+		AccelerationStructure.west_bound = toTangent.y;
+
+		// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,0,1)
+		perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,0,1))); // TODO: simplify this.
+		perpendicular.Normalize();
+
+		toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
+		AccelerationStructure.north_bound = toTangent.z;
+
+		toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
+		AccelerationStructure.south_bound = toTangent.z;
 	}
 
 	float AcceleratedIntersectionTest(Ray3 ray) {
-		if(ray.vector.y > AccelerationStructure.north_bound)
+		if(ray.vector.z > AccelerationStructure.north_bound)
 			return -2;
-		if(ray.vector.y < AccelerationStructure.south_bound)
+		if(ray.vector.z < AccelerationStructure.south_bound)
 			return -2;
-		if(ray.vector.z > AccelerationStructure.west_bound)
+		if(ray.vector.y < AccelerationStructure.west_bound)
 			return -2;
-		if(ray.vector.z < AccelerationStructure.east_bound)
+		if(ray.vector.y > AccelerationStructure.east_bound)
 			return -2;
 
 		return IntersectionTest(ray);
