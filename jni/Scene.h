@@ -26,6 +26,10 @@ public:
 		lights.push_back(light);
 	}
 
+	void BuildAccelerationStructure() {
+
+	};
+
 	uint32_t TraceRay(Ray3 ray, int recursion = 5) {
 
 		float dist = FLT_MAX;
@@ -76,7 +80,6 @@ public:
 		B += .7 * rB;
 
 		return RGBAtoU32(constrain(R), constrain(G), constrain(B));
-		//Ray3 reflection = elements[visibleSphere].ReflectRay(ray, dist);
 	}
 
 	uint32_t colorBackground;

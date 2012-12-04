@@ -73,11 +73,9 @@ public class MainActivity extends Activity {
 	            Drawable d = new BitmapDrawable(getResources(), mImage);
 	            mLinearLayout.setBackgroundDrawable(d);
 	        }
-    		if(System.currentTimeMillis() - lastMeterTime >= 5000) {
+    		if(System.currentTimeMillis() - lastMeterTime >= 500) {
     			float RaysPerSecond = numRays / ((System.currentTimeMillis() - lastMeterTime) / 1000.0f);
     			((TextView) findViewById(R.id.FPS)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Rays/Second");
-    			lastMeterTime = System.currentTimeMillis();
-    			numRays = 0;
     		}
 	    }
 	}

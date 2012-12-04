@@ -70,6 +70,7 @@ void * workerThread(void * ptr){
 			num_rays++;
 		}
 	}
+	return NULL;
 }
 
 static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame) {
@@ -92,8 +93,10 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame)
 	PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
 	mScene.Add(light0);
 
-	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
+	//PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
 	//mScene.Add(light1);
+
+	mScene.BuildAccelerationStructure();
 
 	pthread_t * threads[num_threads];
 
