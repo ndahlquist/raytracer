@@ -36,21 +36,29 @@ public:
 	}
 
 	void BuildAccelerationStructure() {
-
+		for(int i=0; i < elements.size(); i++) {
+			elements[i].BuildAccelerationStructure(mCamera.PinHole);
+		}
 	};
 
-	uint32_t TraceRay(int x, int y, int recursion = 5) {
-		Point3 samplePoint = Point3(0, x/2.0f, y/2.0f);
+	uint32_t TraceRay(int x, int y, int recursion = 0) {
+		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
 		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
+		ray.vector.Normalize();
 		return TraceRay(ray, recursion);
 	}
 
 	uint32_t TraceRay(Ray3 ray, int recursion) {
 
+		//if(elements[1].AcceleratedIntersectionTest(ray) == -2)
+		//	return RGBAtoU32(0, 255, 0);
+
 		float dist = FLT_MAX;
 		int visibleSphere = -1;
 		for(int i=0; i < elements.size(); i++) {
-			float this_dist = elements[i].IntersectionTest(ray);
+			float this_dist;
+			if(ray.endpoint == mCamera.PinHole)
+				this_dist = elements[i].AcceleratedIntersectionTest(ray);
 			if(this_dist >= 0 && this_dist < dist) {
 				dist = this_dist;
 				visibleSphere = i;
@@ -78,7 +86,6 @@ public:
 			G += diffuseMultiplier * lightG * matG;
 			B += diffuseMultiplier * lightB * matB;
 		}
-
 
 		if(recursion <= 0)
 			return RGBAtoU32(constrain(R), constrain(G), constrain(B));

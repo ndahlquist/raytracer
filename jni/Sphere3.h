@@ -33,6 +33,56 @@ struct Sphere3 {
 		this->colorSpecular = colorSpecular;
 	}
 
+	/*inline float sign(float x) {
+		if(x >= 0)
+			return 1;
+		return -1;
+	}*/
+
+	void BuildAccelerationStructure(Point3 eye) {
+		Vector3 toCenter = center - eye;
+		toCenter.Normalize(); // TODO
+		Vector3 perpendicular;
+		if(toCenter.y == 0)
+			perpendicular = Vector3(0, 1, 0); // Prevent division by zero.
+		else {
+			Vector3 temp = Vector3::Cross(toCenter, Vector3(0,1,0)); // TODO: simplify this.
+			perpendicular = Vector3::Cross(toCenter, temp);
+		}
+		Vector3 northVector = Ray3(center, perpendicular).extend(radius) - eye;
+		northVector.Normalize();
+		Vector3 southVector = Ray3(center, perpendicular).extend(-radius) - eye;
+		southVector.Normalize();
+		AccelerationStructure.north_bound = northVector.y;
+		AccelerationStructure.south_bound = southVector.y;
+
+		if(toCenter.z == 0) // TODO
+			perpendicular = Vector3(0, 0, 1); // Prevent division by zero.
+		else {
+			Vector3 temp = Vector3::Cross(toCenter, Vector3(0,0,1));
+			perpendicular = Vector3::Cross(toCenter, temp);
+		}
+		Vector3 westVector = Ray3(center, perpendicular).extend(radius) - eye;
+		westVector.Normalize();
+		Vector3 eastVector = Ray3(center, perpendicular).extend(-radius) - eye;
+		eastVector.Normalize();
+		AccelerationStructure.west_bound = westVector.z;
+		AccelerationStructure.east_bound = eastVector.z;
+	}
+
+	float AcceleratedIntersectionTest(Ray3 ray) {
+		if(ray.vector.y > AccelerationStructure.north_bound)
+			return -2;
+		if(ray.vector.y < AccelerationStructure.south_bound)
+			return -2;
+		if(ray.vector.z > AccelerationStructure.west_bound)
+			return -2;
+		if(ray.vector.z < AccelerationStructure.east_bound)
+			return -2;
+
+		return IntersectionTest(ray);
+	}
+
 	float IntersectionTest(Ray3 ray) {
 
 		Vector3 relativeCenter = center - ray.endpoint;
@@ -73,6 +123,12 @@ struct Sphere3 {
 	uint32_t colorAmbient;
 	uint32_t colorDiffuse;
 	uint32_t colorSpecular;
+	struct AccelerationStructure {
+		float west_bound;
+		float east_bound;
+		float south_bound;
+		float north_bound;
+	} AccelerationStructure;
 };
 
 #endif  // __SPHERE3_H__

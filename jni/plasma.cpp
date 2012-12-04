@@ -52,7 +52,7 @@ void * workerThread(void * ptr){
 			if(rand() % 3 < 2)
 				continue;
 			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
-			*p = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f, y);
+			*p = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);
 			num_rays++;
 		}
 	}

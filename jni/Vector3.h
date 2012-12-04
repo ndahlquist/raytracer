@@ -4,27 +4,18 @@
 
 #include <math.h> // We will need some math.
 
-#include "Point3.h"
-
 /**
 * Vector3 represents a 3-vector
 */
 struct Vector3
 {
-    //
-    // Initalization
-    //
+    // Initialization
     inline Vector3() {
 		this->x = 0.0f;
 		this->y = 0.0f;
 		this->z = 0.0f;
 	}
     //inline Vector3(const Vector3& v);
-    /*inline explicit Vector3(const Point3& point) {
-		this->x = point->x;
-		this->y = point->y;
-		this->z = point->z;
-    }*/
    // inline Vector3(float x, float y, float z);
     //inline Vector3(float s);
 	inline Vector3(float x, float y, float z) {
@@ -100,7 +91,7 @@ struct Vector3
     inline float Component(unsigned int index) const
     {
         return ((const float *)this)[index];
-    }
+    }*/
 
 
 
@@ -108,7 +99,9 @@ struct Vector3
     //
     // Static math functions
     //
-    inline static Vector3 Cross(const Vector3& left, const Vector3& right);*/
+    inline static Vector3 Cross(const Vector3& left, const Vector3& right) {
+    	return Vector3(left.x*right.x, left.y*right.y, left.z*right.z);
+    }
     inline static float Dot(const Vector3& left, const Vector3& right) {
     	return left.x*right.x + left.y*right.y + left.z*right.z;
     }
@@ -137,8 +130,6 @@ inline Vector3 operator-(const Vector3& left, const Vector3& right) {
 inline Vector3 operator-(const Vector3& v) {
 	return Vector3(-v.x, -v.y, -v.z);
 }
-
-//inline Vector3 operator-(const Point3& left, const Point3& right)
 
 #endif  // __STVECTOR3_H__
 

@@ -56,5 +56,8 @@ inline Point3 operator+(const Point3& left, const Vector3& right) {
 }
 //inline Point3 operator+(const STVector3& left, const Point3& right);
 //inline Point3 operator-(const Point3& left, const STVector3& right);
+inline bool operator==(const Point3& left, const Point3& right) {
+	return left.x==right.x && left.y==right.y && left.z==right.z;
+}
 
 #endif  // __Point3_H__
