@@ -96,13 +96,23 @@ public:
 		if(elements[visibleSphere].colorSpecular == RGBAtoU32(0, 0, 0))
 			return RGBAtoU32(constrain(R), constrain(G), constrain(B));
 
-		// Specular / reflective
-		RGBAfromU32(elements[visibleSphere].colorSpecular, matR, matG, matB);
+		// Specular
+		for(int i=0; i < lights.size(); i++) {
+			RGBAfromU32(elements[visibleSphere].colorSpecular, matR, matG, matB);
+			float specularMultiplier = elements[visibleSphere].SpecularIllumination(ray.extend(dist), lights[i], ray.vector);
+			uint8_t lightR, lightG, lightB;
+			RGBAfromU32(lights[i].color, lightR, lightG, lightB);
+			R += specularMultiplier * lightR * matR;
+			G += specularMultiplier * lightG * matG;
+			B += specularMultiplier * lightB * matB;
+		}
+
+		// Reflective
 		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
 		uint32_t reflectedColor = this->TraceRay(reflectedRay, recursion);
 		uint8_t rR, rG, rB;
 		RGBAfromU32(reflectedColor, rR, rG, rB);
-		R += .7 * rR;
+		R += .7 * rR; // TODO
 		G += .7 * rG;
 		B += .7 * rB;
 

@@ -68,7 +68,7 @@ void * workerThread(void * ptr){
 static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int nframe) {
 
 	Scene mScene;
-	float frame = (float) nframe / 200.0f;
+	float frame = (float) nframe / 500.0f;
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
