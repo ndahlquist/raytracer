@@ -36,7 +36,6 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 
 static int num_threads = 8;
 static int num_rays;
-#define COLOR_MIX_BIAS 1.0f
 
 struct thread_args {
 	AndroidBitmapInfo * info;
@@ -50,23 +49,10 @@ void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
 		for(int x = 0; x < args.info->width; x++) {
-			if(rand() % 6 < 5)
+			if(rand() % 3 < 2)
 				continue;
-
-			Point3 eye = Point3(-800,0,0);
-			Point3 samplePoint = Point3(0, (x - args.info->width / 2.0f)/2.0f, (y - args.info->height / 2.0f)/2.0f);
-			Ray3 ray = Ray3(eye, samplePoint);
-			uint32_t newSample = args.scene->TraceRay(ray);
-
 			uint32_t * p = pixRef(*args.info, args.pixels, x, y);
-			//*p = newSample;
-			uint8_t newR, newG, newB, oldR, oldG, oldB;
-			RGBAfromU32(newSample, newR, newG, newB);
-			RGBAfromU32(*p, oldR, oldG, oldB);
-			*p = RGBAtoU32(newR * COLOR_MIX_BIAS + oldR * (1-COLOR_MIX_BIAS),
-					       newG * COLOR_MIX_BIAS + oldG * (1-COLOR_MIX_BIAS),
-					       newB * COLOR_MIX_BIAS + oldB * (1-COLOR_MIX_BIAS));
-
+			*p = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f, y);
 			num_rays++;
 		}
 	}
@@ -93,12 +79,18 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame)
 	PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
 	mScene.Add(light0);
 
-	//PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
-	//mScene.Add(light1);
+	Camera camera0;
+	camera0.PinHole = Point3(-800, 0, 0);
+	camera0.LensPlane = 0;
+	mScene.Add(camera0);
+
+	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
+	mScene.Add(light1);
 
 	mScene.BuildAccelerationStructure();
 
 	pthread_t * threads[num_threads];
+	struct thread_args * args_array[num_threads];
 
 	for(int i=0; i < num_threads; i++) {
 		struct thread_args * args = new struct thread_args;
@@ -107,12 +99,14 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int frame)
 		args->scene = &mScene;
 		args->threadNum = i;
 		threads[i] = new pthread_t;
+		args_array[i] = args;
 		pthread_create(threads[i],NULL,&workerThread,(void *)args);
 
 	}
 	for(int i=0; i < num_threads; i++) {
 		pthread_join(*threads[i], NULL);
-		//delete threads[i];
+		delete threads[i];
+		delete args_array[i];
 	}
 }
 

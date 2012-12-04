@@ -11,6 +11,11 @@
 #include "Ray3.h"
 #include "Light.h"
 
+struct Camera {
+	Point3 PinHole;
+	float LensPlane; // TODO: Generalize this to a ray
+};
+
 class Scene {
 public:
 
@@ -26,11 +31,21 @@ public:
 		lights.push_back(light);
 	}
 
+	void Add(Camera camera) {
+		mCamera = camera;
+	}
+
 	void BuildAccelerationStructure() {
 
 	};
 
-	uint32_t TraceRay(Ray3 ray, int recursion = 5) {
+	uint32_t TraceRay(int x, int y, int recursion = 5) {
+		Point3 samplePoint = Point3(0, x/2.0f, y/2.0f);
+		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
+		return TraceRay(ray, recursion);
+	}
+
+	uint32_t TraceRay(Ray3 ray, int recursion) {
 
 		float dist = FLT_MAX;
 		int visibleSphere = -1;
@@ -87,7 +102,7 @@ public:
 private:
 	std::vector<Sphere3> elements;
 	std::vector<PointLight> lights;
-
+	Camera mCamera;
 };
 
 #endif  // __SCENE_H__
