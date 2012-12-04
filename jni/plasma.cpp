@@ -49,9 +49,11 @@ struct thread_args {
 
 void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
-	for(int y = args.threadNum * args.info->height / num_threads; y < (args.threadNum + 1) * args.info->height / num_threads; y++) {
-		for(int x = 0; x < args.info->width; x++) {
-			if(!interestMap->Get(x, y))
+	for(int x = 0; x < args.info->width; x++) {
+		for(int y = 0; y < args.info->height; y++) {
+			if((x*x*x + y) % num_threads != args.threadNum)
+				continue;
+			if(!interestMap->GetFlip(x, y))
 				continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			uint32_t newValue = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);
@@ -66,30 +68,38 @@ void * workerThread(void * ptr){
 static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, int nframe) {
 
 	Scene mScene;
-	float frame = (float) nframe / 2.0f;
+	float frame = (float) nframe / 200.0f;
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
 	mScene.Add(sphere0);
 
-	Sphere3 sphere1 = Sphere3(100, 80+40*sin(frame/34.0f + 6), -90*sin(frame/43.0f), 50);
+	Sphere3 sphere1 = Sphere3(80, 80+40*sin(frame/34.0f + 6), -90*sin(frame/43.0f), 50);
 	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
 	mScene.Add(sphere1);
 
-	Sphere3 sphere2 = Sphere3(100, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f), 40);
+	Sphere3 sphere2 = Sphere3(80, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f), 40);
 	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
 	mScene.Add(sphere2);
 
+	Sphere3 sphere3 = Sphere3(5, 50+10*sin(frame/20.0f), 20+10*cos(frame/20.0f), 10);
+	sphere3.SetMaterial(RGBAtoU32(100, 100, 0));
+	mScene.Add(sphere3);
+
+	Sphere3 sphere4 = Sphere3(400, -100, 140, 340);
+	sphere4.SetMaterial(RGBAtoU32(20, 20, 20), RGBAtoU32(150, 150, 150), RGBAtoU32(0, 0, 0));
+	mScene.Add(sphere4);
+
 	PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
 	mScene.Add(light0);
+
+	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
+	mScene.Add(light1);
 
 	Camera camera0;
 	camera0.PinHole = Point3(-800, 0, 0);
 	camera0.LensPlane = 0;
 	mScene.Add(camera0);
-
-	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
-	mScene.Add(light1);
 
 	mScene.BuildAccelerationStructure();
 

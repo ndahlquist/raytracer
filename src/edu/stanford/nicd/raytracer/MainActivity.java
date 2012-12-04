@@ -60,9 +60,8 @@ public class MainActivity extends Activity {
 				mImage.setHasAlpha(false);
 			}
 			Initialize(mImage);
-			int frame = 0;
 			while(!terminateThread) {
-				numRays += RayTrace(mImage, frame++);
+				numRays += RayTrace(mImage, (int) System.currentTimeMillis());
 				publishProgress();
 			}
 	        return mImage;

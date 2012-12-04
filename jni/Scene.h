@@ -93,6 +93,9 @@ public:
 			return RGBAtoU32(constrain(R), constrain(G), constrain(B));
 		recursion--;
 
+		if(elements[visibleSphere].colorSpecular == RGBAtoU32(0, 0, 0))
+			return RGBAtoU32(constrain(R), constrain(G), constrain(B));
+
 		// Specular / reflective
 		RGBAfromU32(elements[visibleSphere].colorSpecular, matR, matG, matB);
 		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
