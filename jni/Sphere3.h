@@ -30,6 +30,7 @@ struct Sphere3 {
 
 	inline void applyForce(Vector3 force) {
 		this->offset += force;
+		this->offset /= .98f;
 	}
 
 	inline void SetMaterial(const uint32_t colorDiffuse) {

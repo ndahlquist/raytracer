@@ -87,7 +87,10 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 	sphere2->setPosition(Point3(80, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f)));
 
 	Sphere3 * sphere3 = scene->ReturnSphere(3);
-	sphere3->setPosition(Point3(5, 50+10*sin(frame/20.0f), 20+10*cos(frame/20.0f)));
+	sphere3->setPosition(Point3(5, 50+23*sin(frame/19.0f), 20+23*cos(frame/20.0f)));
+
+	Sphere3 * sphere4 = scene->ReturnSphere(4);
+	sphere4->setPosition(Point3(80+200*sin(frame/23.0f), 20+40*cos(frame/11.0f), 70+150*cos(frame/23.0f)));
 
 	scene->BuildAccelerationStructure();
 
@@ -141,8 +144,8 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		sphere3.SetMaterial(RGBAtoU32(100, 100, 0));
 		scene->Add(sphere3);
 
-		Sphere3 sphere4 = Sphere3(480, 100, 300, 340);
-		sphere4.SetMaterial(RGBAtoU32(20, 20, 20), RGBAtoU32(150, 150, 150), RGBAtoU32(0, 0, 0));
+		Sphere3 sphere4 = Sphere3(480, 100, 300, 15);
+		sphere4.SetMaterial(RGBAtoU32(100, 0, 100));
 		scene->Add(sphere4);
 
 		PointLight light0 = PointLight(Point3(0, 200, -100), .01f);

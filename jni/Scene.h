@@ -66,7 +66,7 @@ public:
 
 		Vector3 Normal = ray.extend(dist) - thisSphere->center;
 		Normal.Normalize();
-		thisSphere->applyForce(-10.0f*Normal);
+		thisSphere->applyForce(-5.0f*Normal);
 	}
 
 	Color3f TraceRay(int x, int y) {
@@ -145,14 +145,14 @@ public:
 			vec.Normalize();
 			float x = vec.y/4.0f+.5f;
 			float y = vec.z/4.0f+.5f;
-			return SampleBitmap(info.width*x, info.height*y)*1.1f;
+			return SampleBitmap(info.width*x, info.height*y)*1.2f;
 		}
 
 		Color3f BilinearSampleLightProbe(Vector3 vec) {
 			vec.Normalize();
 			float x = vec.y/4.0f+.5f;
 			float y = vec.z/4.0f+.5f;
-			return 1.1f*bilinearSample(info.width*x, info.height*y);
+			return bilinearSample(info.width*x, info.height*y);
 		}
 
 private:
