@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -33,6 +34,28 @@ public class MainActivity extends Activity {
 
 		setContentView(R.layout.main);
 		mLinearLayout = (LinearLayout) findViewById(R.id.background);
+		mLinearLayout.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent ev) {
+				final float x = ev.getX();
+		        final float y = ev.getY();
+		        switch(ev.getAction()) {
+			        case (MotionEvent.ACTION_UP):
+			        	raytraceThread.pointer_x = -1;
+		        		raytraceThread.pointer_y = -1;
+			        break;
+			        case (MotionEvent.ACTION_MOVE):
+			        	raytraceThread.pointer_x = x;
+		        		raytraceThread.pointer_y = y;
+			        break;
+			        case (MotionEvent.ACTION_DOWN):
+			        	raytraceThread.pointer_x = x;
+		        		raytraceThread.pointer_y = y;
+			        break;
+		        }
+		        
+				return true;
+			}
+	    });
 		
 		Switch switchSampling = (Switch) findViewById(R.id.switchSampling);
 		switchSampling.setChecked(true);
@@ -88,6 +111,8 @@ public class MainActivity extends Activity {
 		private long startTime = 0;
 		private long numRays = 0;
 		private int numFrames = 0;
+		private float pointer_x = -1;
+		private float pointer_y = -1;
 		
 	    public RaytraceTask() {
 	        startTime = System.currentTimeMillis();
@@ -107,6 +132,8 @@ public class MainActivity extends Activity {
 			Initialize(mImage);
 			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
+				if(pointer_x!=-1 && pointer_y!=-1)
+					TouchEvent(pointer_x, pointer_y);
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
 				lastUpdateTime = System.currentTimeMillis();
 				numRays += RayTrace(mImage, animationSpeed * timeElapsed);
@@ -125,7 +152,7 @@ public class MainActivity extends Activity {
 	        numFrames++;
     		float RaysPerSecond = numRays / ((System.currentTimeMillis() - startTime) / 1000.0f);
     		float FramesPerSecond = numFrames / ((System.currentTimeMillis() - startTime) / 1000.0f);
-    		((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Primary Rays/Second");
+    		((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Viewing Rays/Second");
     		((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
 	    }
 	}
@@ -139,5 +166,6 @@ public class MainActivity extends Activity {
 	private static native int RayTrace(Bitmap output, long timeElapsed);
 	private static native void ToggleAdaptiveSampling(boolean enabled);
 	private static native void SetInterlacing(int value);
+	private static native void TouchEvent(float x, float y);
 	
 }

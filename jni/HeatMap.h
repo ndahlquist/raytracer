@@ -9,9 +9,8 @@ class HeatMap {
 public:
 
 #define MAX_PROBABILITY 1.0f
-#define MIN_PROBABILITY .05f
-//#define PROBABILITY_DECAY .98f
-#define PROBABILITY_DECAY .05f
+#define MIN_PROBABILITY 0.01f
+#define PROBABILITY_DECAY .02f
 
 	HeatMap(unsigned int width, unsigned int height, unsigned int frequency=10) {
 		this->frequency = frequency;
@@ -25,16 +24,21 @@ public:
 		}
 	}
 
-	void Post(unsigned int xCoor, unsigned int yCoor, uint32_t oldValue, uint32_t newValue) {
-		if(oldValue != newValue) {
-			unsigned int x = xCoor / frequency;
-			unsigned int y = yCoor / frequency;
-			*MapCoordinate(x, y) = MAX_PROBABILITY-MIN_PROBABILITY;
-			*MapCoordinate(x+1, y+1) = MAX_PROBABILITY-MIN_PROBABILITY;
-			*MapCoordinate(x+1, y-1) = MAX_PROBABILITY-MIN_PROBABILITY;
-			*MapCoordinate(x-1, y+1) = MAX_PROBABILITY-MIN_PROBABILITY;
-			*MapCoordinate(x-1, y-1) = MAX_PROBABILITY-MIN_PROBABILITY;
-		}
+	void Post(unsigned int xCoor, unsigned int yCoor) {
+		unsigned int x = xCoor / frequency;
+		unsigned int y = yCoor / frequency;
+		*MapCoordinate(x, y) = MAX_PROBABILITY-MIN_PROBABILITY;
+		*MapCoordinate(x+1, y+1) = MAX_PROBABILITY-MIN_PROBABILITY;
+		*MapCoordinate(x+1, y-1) = MAX_PROBABILITY-MIN_PROBABILITY;
+		*MapCoordinate(x-1, y+1) = MAX_PROBABILITY-MIN_PROBABILITY;
+		*MapCoordinate(x-1, y-1) = MAX_PROBABILITY-MIN_PROBABILITY;
+	}
+
+	bool GetFlip(unsigned int xCoor, unsigned int yCoor) {
+		float p = GetProbability(xCoor, yCoor);
+		if(rand() % 1024 > p * 1024)
+			return false;
+		return true;
 	}
 
 	float GetProbability(int xCoor, int yCoor) {
@@ -43,13 +47,6 @@ public:
 		float currentP = * MapCoordinate(x, y);
 		* MapCoordinate(x, y) = std::max(0.0f, *MapCoordinate(x, y)-PROBABILITY_DECAY);
 		return currentP + MIN_PROBABILITY;
-	}
-
-	bool GetFlip(unsigned int xCoor, unsigned int yCoor) {
-		float p = GetProbability(xCoor, yCoor);
-		if(rand() % 1024 > p * 1024)
-			return false;
-		return true;
 	}
 
 private:

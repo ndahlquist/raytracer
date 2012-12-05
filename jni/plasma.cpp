@@ -1,4 +1,3 @@
-
 #include <jni.h>
 #include <time.h>
 #include <android/log.h>
@@ -21,6 +20,17 @@
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
+#define NUM_THREADS 8
+
+static Scene * scene;
+static HeatMap * heatMap;
+static bool HeatMapEnabled = true;
+static int interlace_lines = 2;
+static int frame_num = 0;
+static int num_rays;
+static int width;
+static int height;
+
 static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info) {
 	int ret;
 	if((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
@@ -34,39 +44,27 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
-static bool HeatMapEnabled = true;
-static int interleave_amount = 2;
-static int frame_num = 0;
-static HeatMap * interestMap;
-static int num_threads = 8;
-static int num_rays;
-
 struct thread_args {
 	AndroidBitmapInfo * info;
 	void * pixels;
-	Scene * scene;
 	int threadNum;
 };
 
-#define MAGIC_NUMBER (sqrt(5.0f)-1.0f)/2.0f
-int HashFunction(unsigned int input) {
-	float intpart;
-	float fractPart = modf(MAGIC_NUMBER*input, &intpart);
-	return (int) 16384.0f * fractPart;
-}
-
 void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
-	for(int y = args.threadNum; y < args.info->height; y+=num_threads) {
-		if(interleave_amount >= 1 && (frame_num+y) % interleave_amount != 0)
+	for(int y = args.threadNum; y < height; y+=NUM_THREADS) {
+		if(interlace_lines >= 1 && (frame_num+y) % interlace_lines != 0)
 			continue;
-		for(int x = 0; x < args.info->width; x++) {
-			if(HeatMapEnabled && !interestMap->GetFlip(x, y))
+		for(int x = 0; x < width; x++) {
+			if(HeatMapEnabled && !heatMap->GetFlip(x, y))
 				continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
-			uint32_t newValue = args.scene->TraceRay(x - args.info->width / 2.0f, y - args.info->height / 2.0f);
-			interestMap->Post(x, y, * oldValue, newValue);
-			* oldValue = newValue;
+			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f);
+			if(* oldValue != newValue) {
+				if(HeatMapEnabled)
+					heatMap->Post(x, y);
+				* oldValue = newValue;
+			}
 			num_rays++;
 		}
 	}
@@ -75,59 +73,37 @@ void * workerThread(void * ptr){
 
 static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeElapsed) {
 
-	Scene mScene;
 	static float frame;
 	frame += timeElapsed / 3000.0f;
 	frame_num++;
 
-	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
-	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
-	mScene.Add(sphere0);
+	Sphere3 * sphere0 = scene->ReturnSphere(0);
+	sphere0->setPosition(Point3(100, -90, -100));
 
-	Sphere3 sphere1 = Sphere3(80, 80+40*sin(frame/34.0f + 6), -90*sin(frame/43.0f), 50);
-	sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
-	mScene.Add(sphere1);
+	Sphere3 * sphere1 = scene->ReturnSphere(1);
+	sphere1->setPosition(Point3(80, 80+40*sin(frame/34.0f + 6), -90*sin(frame/43.0f)));
 
-	Sphere3 sphere2 = Sphere3(80, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f), 40);
-	sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
-	mScene.Add(sphere2);
+	Sphere3 * sphere2 = scene->ReturnSphere(2);
+	sphere2->setPosition(Point3(80, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f)));
 
-	Sphere3 sphere3 = Sphere3(5, 50+10*sin(frame/20.0f), 20+10*cos(frame/20.0f), 10);
-	sphere3.SetMaterial(RGBAtoU32(100, 100, 0));
-	mScene.Add(sphere3);
+	Sphere3 * sphere3 = scene->ReturnSphere(3);
+	sphere3->setPosition(Point3(5, 50+10*sin(frame/20.0f), 20+10*cos(frame/20.0f)));
 
-	Sphere3 sphere4 = Sphere3(400, -100, 140, 340);
-	sphere4.SetMaterial(RGBAtoU32(20, 20, 20), RGBAtoU32(150, 150, 150), RGBAtoU32(0, 0, 0));
-	mScene.Add(sphere4);
+	scene->BuildAccelerationStructure();
 
-	PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
-	mScene.Add(light0);
+	pthread_t * threads[NUM_THREADS];
+	struct thread_args * args_array[NUM_THREADS];
 
-	PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
-	mScene.Add(light1);
-
-	Camera camera0;
-	camera0.PinHole = Point3(-800, 0, 0);
-	camera0.LensPlane = 0;
-	mScene.Add(camera0);
-
-	mScene.BuildAccelerationStructure();
-
-	pthread_t * threads[num_threads];
-	struct thread_args * args_array[num_threads];
-
-	for(int i=0; i < num_threads; i++) {
+	for(int i=0; i < NUM_THREADS; i++) {
 		struct thread_args * args = new struct thread_args;
 		args->info = &info;
 		args->pixels = pixels;
-		args->scene = &mScene;
 		args->threadNum = i;
 		threads[i] = new pthread_t;
 		args_array[i] = args;
 		pthread_create(threads[i],NULL,&workerThread,(void *)args);
-
 	}
-	for(int i=0; i < num_threads; i++) {
+	for(int i=0; i < NUM_THREADS; i++) {
 		pthread_join(*threads[i], NULL);
 		delete threads[i];
 		delete args_array[i];
@@ -142,9 +118,44 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	AndroidBitmapInfo info;
 	if(!VerifyBitmap(env, mBitmap, info))
 		return;
-	if(interestMap == NULL)
-		interestMap = new HeatMap(info.width, info.height);
+	width = info.width;
+	height = info.height;
+	if(heatMap == NULL)
+		heatMap = new HeatMap(info.width, info.height);
+	if(scene == NULL) {
+		scene = new Scene();
 
+		Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
+		sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
+		scene->Add(sphere0);
+
+		Sphere3 sphere1 = Sphere3(80, 80, 0, 50);
+		sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
+		scene->Add(sphere1);
+
+		Sphere3 sphere2 = Sphere3(80, -40, 20, 40);
+		sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
+		scene->Add(sphere2);
+
+		Sphere3 sphere3 = Sphere3(5, 50, 20, 30);
+		sphere3.SetMaterial(RGBAtoU32(100, 100, 0));
+		scene->Add(sphere3);
+
+		Sphere3 sphere4 = Sphere3(480, 100, 300, 340); //-100, 140, 340);
+		sphere4.SetMaterial(RGBAtoU32(20, 20, 20), RGBAtoU32(150, 150, 150), RGBAtoU32(0, 0, 0));
+		scene->Add(sphere4);
+
+		PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
+		scene->Add(light0);
+
+		PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
+		scene->Add(light1);
+
+		Camera camera0;
+		camera0.PinHole = Point3(-800, 0, 0);
+		camera0.LensPlane = 0;
+		scene->Add(camera0);
+	}
 }
 
 extern "C"
@@ -174,5 +185,12 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_ToggleAdapt
 extern "C"
 JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetInterlacing(JNIEnv * env, jobject obj, jint interlacing) {
 	if(interlacing >= 1)
-		interleave_amount = interlacing;
+		interlace_lines = interlacing;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_TouchEvent(JNIEnv * env, jobject obj, jfloat x, jfloat y) {
+	if(scene == NULL)
+		return;
+	scene->PokeSphere(x - width / 2.0f, y - height / 2.0f);
 }

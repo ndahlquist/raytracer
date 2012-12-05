@@ -15,10 +15,21 @@ struct Sphere3 {
 	inline Sphere3(const Point3 &center, const float radius) {
 		this->center = center;
 		this->radius = radius;
+		this->offset = Vector3(0,0,0);
 	}
 	inline Sphere3(const float x, const float y, const float z, const float radius) {
 		this->center = Point3(x, y, z);
 		this->radius = radius;
+		this->offset = Vector3(0,0,0);
+	}
+
+	inline void setPosition(const Point3 & center) {
+		this->center = center + this->offset;
+		this->offset *= .98f;
+	}
+
+	inline void applyForce(Vector3 force) {
+		this->offset += force;
 	}
 
 	inline void SetMaterial(const uint32_t colorDiffuse) {
@@ -122,6 +133,7 @@ struct Sphere3 {
 
 	// Local members:
 	Point3 center;
+	Vector3 offset;
 	float radius;
 	uint32_t colorAmbient;
 	uint32_t colorDiffuse;
