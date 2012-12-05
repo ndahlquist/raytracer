@@ -67,4 +67,41 @@ void FloatBuftoU32Buf(float * inputBuffer, void * outputPixels, int length) {
 	}
 }
 
+class Color3f {
+public:
+	float r, g, b;
+
+	Color3f(float R, float G, float B) {
+		r = R;
+		g = G;
+		b = B;
+	}
+
+	Color3f(uint32_t v) {
+		uint8_t R, G, B;
+		RGBAfromU32(v, R, G, B);
+		r = R;
+		g = G;
+		b = B;
+	}
+
+	uint32_t U32() {
+		return RGBAtoU32((uint8_t) r, (uint8_t) g, (uint8_t) b);
+	}
+
+};
+
+inline Color3f operator*(const Color3f& v, float a) {
+	return Color3f(v.r*a, v.g*a, v.b*a);
+}
+inline Color3f operator*(float a, const Color3f& v) {
+	return Color3f(v.r*a, v.g*a, v.b*a);
+}
+inline Color3f operator+(const Color3f& left, const Color3f& right) {
+	return Color3f(left.r + right.r, left.g + right.g, left.b + right.b);
+}
+inline Color3f operator-(const Color3f& left, const Color3f& right) {
+	return Color3f(left.r - right.r, left.g - right.g, left.b - right.b);
+}
+
 #endif
