@@ -4,12 +4,16 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Display;
-import android.widget.CheckBox;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -30,10 +34,25 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main);
 		mLinearLayout = (LinearLayout) findViewById(R.id.background);
 		
-		CheckBox checkBoxSampling = (CheckBox) findViewById(R.id.checkBoxSampling);
-		checkBoxSampling.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+		Switch switchSampling = (Switch) findViewById(R.id.switchSampling);
+		switchSampling.setChecked(true);
+		switchSampling.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				ToggleAdaptiveSampling(isChecked);
+				raytraceThread.startTime = System.currentTimeMillis();
+				raytraceThread.numRays = 0;
+				raytraceThread.numFrames = 0;
+			}
+		});
+		
+		Spinner spinnerInterlacing = (Spinner) findViewById(R.id.spinnerInterlacing);
+		spinnerInterlacing.setSelection(1);
+		spinnerInterlacing.setOnItemSelectedListener(new OnItemSelectedListener() {
+			public void onNothingSelected(AdapterView<?> arg0) {}
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				Spinner imageSelector = (Spinner) findViewById(R.id.spinnerInterlacing);
+				SetInterlacing(imageSelector.getSelectedItemPosition()+1);
 				raytraceThread.startTime = System.currentTimeMillis();
 				raytraceThread.numRays = 0;
 				raytraceThread.numFrames = 0;
@@ -48,6 +67,7 @@ public class MainActivity extends Activity {
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onStopTrackingTouch(SeekBar seekBar) {}  
 		});
+		seekBarSpeed.setProgress(10);
 	}
 	
 	@Override
@@ -118,5 +138,6 @@ public class MainActivity extends Activity {
 	private static native void Initialize(Bitmap input);
 	private static native int RayTrace(Bitmap output, long timeElapsed);
 	private static native void ToggleAdaptiveSampling(boolean enabled);
+	private static native void SetInterlacing(int value);
 	
 }

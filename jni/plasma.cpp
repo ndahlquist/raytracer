@@ -10,7 +10,6 @@
 #include <pthread.h>
 
 #include "ColorUtils.h"
-
 #include "Point3.h"
 #include "Vector3.h"
 #include "Ray3.h"
@@ -35,7 +34,9 @@ static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info)
 	return true;
 }
 
-static bool HeatMapEnabled;
+static bool HeatMapEnabled = true;
+static int interleave_amount = 2;
+static int frame_num = 0;
 static HeatMap * interestMap;
 static int num_threads = 8;
 static int num_rays;
@@ -47,12 +48,19 @@ struct thread_args {
 	int threadNum;
 };
 
+#define MAGIC_NUMBER (sqrt(5.0f)-1.0f)/2.0f
+int HashFunction(unsigned int input) {
+	float intpart;
+	float fractPart = modf(MAGIC_NUMBER*input, &intpart);
+	return (int) 16384.0f * fractPart;
+}
+
 void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
-	for(int x = 0; x < args.info->width; x++) {
-		for(int y = 0; y < args.info->height; y++) {
-			if((x*x*x + y) % num_threads != args.threadNum)
-				continue;
+	for(int y = args.threadNum; y < args.info->height; y+=num_threads) {
+		if(interleave_amount >= 1 && (frame_num+y) % interleave_amount != 0)
+			continue;
+		for(int x = 0; x < args.info->width; x++) {
 			if(HeatMapEnabled && !interestMap->GetFlip(x, y))
 				continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
@@ -70,6 +78,7 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 	Scene mScene;
 	static float frame;
 	frame += timeElapsed / 3000.0f;
+	frame_num++;
 
 	Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
 	sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
@@ -160,4 +169,10 @@ JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JN
 extern "C"
 JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_ToggleAdaptiveSampling(JNIEnv * env, jobject obj, jboolean enabled) {
 	HeatMapEnabled = enabled;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetInterlacing(JNIEnv * env, jobject obj, jint interlacing) {
+	if(interlacing >= 1)
+		interleave_amount = interlacing;
 }

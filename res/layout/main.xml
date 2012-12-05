@@ -12,18 +12,25 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 	    
-	    <TextView
-	        android:id="@+id/FramesPerSecond"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:textAppearance="?android:attr/textAppearanceMedium" />
-    
-	     <CheckBox
-	        android:id="@+id/checkBoxSampling"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="Adaptive Sampling"
-        	android:textAppearance="?android:attr/textAppearanceMedium"  />
+    <TextView
+        android:id="@+id/FramesPerSecond"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+     <Switch
+         android:id="@+id/switchSampling"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="@string/adaptive_sampling"
+         android:textAppearance="?android:attr/textAppearanceMedium"  />
+
+     <Spinner
+         android:id="@+id/spinnerInterlacing"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:entries="@array/interlace_options"
+         android:textAppearance="?android:attr/textAppearanceMedium"  />
     
     <SeekBar
         android:id="@+id/seekBarSpeed"
