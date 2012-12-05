@@ -150,19 +150,10 @@ public:
 		void * pixels;
 		AndroidBitmapInfo info;
 
-		// adapted from objectmix.com/graphics/132811-reflection-vector-light-probe-coordinate.html
 		uint32_t SampleLightProbe(Vector3 vec) {
 			vec.Normalize();
-			//int x = info.height*(vec.y+1.0f)/2.0f;
-			//int y = info.width*(vec.z+1.0f)/2.0f;
-			float r = sqrt( (vec.x+1) * (vec.x+1) + vec.y * vec.y + vec.z * vec.z);
-			float x = vec.y / ( 2. * r ) + .5;
-			float y = vec.z / ( 2. * r ) + .5;
-			//float r = (1.0/3.14) * acos(vec.z)/sqrt(vec.x + vec.y);
-			//float x = (vec.x*r + 1.0f) / 2.0f;
-			//float y = (vec.y*r + 1.0f) / 2.0f;
-			if(x < 0 || x >1 || y<0 || y>1)
-				return 0;
+			float x = vec.y/4.0f+.5f;
+			float y = vec.z/4.0f+.5f;
 			return * pixRef(info, pixels, x*info.width, y*info.height);
 		}
 	} lightProbe;
