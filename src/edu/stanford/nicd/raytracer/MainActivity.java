@@ -17,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -24,6 +25,7 @@ import android.graphics.drawable.Drawable;
 public class MainActivity extends Activity {
 	
 	private Bitmap mImage;
+	private Bitmap mLightProbe;
 	private LinearLayout mLinearLayout;
 	private RaytraceTask raytraceThread;
 	int animationSpeed;
@@ -129,7 +131,12 @@ public class MainActivity extends Activity {
 				mImage.setDensity(Bitmap.DENSITY_NONE);
 				mImage.setHasAlpha(false);
 			}
+			if(mLightProbe == null) {
+				mLightProbe = BitmapFactory.decodeResource(getResources(), R.drawable.light_probe);
+				mLightProbe.setHasAlpha(false);
+			}
 			Initialize(mImage);
+			PassLightProbe(mLightProbe);
 			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
 				if(pointer_x!=-1 && pointer_y!=-1)
@@ -163,6 +170,7 @@ public class MainActivity extends Activity {
 	}
 
 	private static native void Initialize(Bitmap input);
+	private static native void PassLightProbe(Bitmap lightProbe);
 	private static native int RayTrace(Bitmap output, long timeElapsed);
 	private static native void ToggleAdaptiveSampling(boolean enabled);
 	private static native void SetInterlacing(int value);

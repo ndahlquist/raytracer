@@ -141,7 +141,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		sphere3.SetMaterial(RGBAtoU32(100, 100, 0));
 		scene->Add(sphere3);
 
-		Sphere3 sphere4 = Sphere3(480, 100, 300, 340); //-100, 140, 340);
+		Sphere3 sphere4 = Sphere3(480, 100, 300, 340);
 		sphere4.SetMaterial(RGBAtoU32(20, 20, 20), RGBAtoU32(150, 150, 150), RGBAtoU32(0, 0, 0));
 		scene->Add(sphere4);
 
@@ -156,6 +156,26 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		camera0.LensPlane = 0;
 		scene->Add(camera0);
 	}
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_PassLightProbe(JNIEnv * env, jobject obj, jobject mBitmap) {
+
+	AndroidBitmapInfo info;
+	void * mPixels;
+
+	if(!VerifyBitmap(env, mBitmap, info))
+		return;
+
+	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
+		LOGE("AndroidBitmap_lockPixels() failed!");
+
+	scene->lightProbe.pixels = mPixels;
+	scene->lightProbe.info = info;
+
+	AndroidBitmap_unlockPixels(env, mBitmap);
+	return;
+
 }
 
 extern "C"
