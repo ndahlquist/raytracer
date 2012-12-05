@@ -86,7 +86,18 @@ public:
 	}
 
 	uint32_t U32() {
-		return RGBAtoU32((uint8_t) r, (uint8_t) g, (uint8_t) b);
+		return RGBAtoU32(constrain(r), constrain(g), constrain(b));
+	}
+
+	float Luminance() {
+		return 0.299f*b + 0.587f*g + 0.114f*b;
+	}
+
+	inline Color3f& operator+=(const Color3f& right) {
+		r += right.r;
+		g += right.g;
+		b += right.b;
+		return *this;
 	}
 
 };
@@ -97,11 +108,17 @@ inline Color3f operator*(const Color3f& v, float a) {
 inline Color3f operator*(float a, const Color3f& v) {
 	return Color3f(v.r*a, v.g*a, v.b*a);
 }
+inline Color3f operator*(const Color3f& a, const Color3f& b) {
+	return Color3f(a.r*b.r, a.g*b.g, a.b*b.b);
+}
 inline Color3f operator+(const Color3f& left, const Color3f& right) {
 	return Color3f(left.r + right.r, left.g + right.g, left.b + right.b);
 }
 inline Color3f operator-(const Color3f& left, const Color3f& right) {
 	return Color3f(left.r - right.r, left.g - right.g, left.b - right.b);
+}
+inline Color3f operator/(const Color3f& c, float a) {
+	return Color3f(c.r/a, c.g/a, c.b/a);
 }
 
 #endif

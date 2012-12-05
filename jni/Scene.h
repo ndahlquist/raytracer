@@ -11,6 +11,8 @@
 #include "Ray3.h"
 #include "Light.h"
 
+#define NUM_RECURSIVE_REFLECTIONS 4
+
 struct Camera {
 	Point3 PinHole;
 	float LensPlane; // TODO: Generalize this to a ray
@@ -67,14 +69,14 @@ public:
 		thisSphere->applyForce(-10.0f*Normal);
 	}
 
-	uint32_t TraceRay(int x, int y, int recursion = 4) {
+	Color3f TraceRay(int x, int y) {
 		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
 		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
 		ray.vector.Normalize();
-		return TraceRay(ray, recursion);
+		return TraceRay(ray, NUM_RECURSIVE_REFLECTIONS);
 	}
 
-	uint32_t TraceRay(Ray3 ray, int recursion) {
+	Color3f TraceRay(Ray3 ray, int recursion) {
 
 		//if(elements[1].AcceleratedIntersectionTest(ray) == -2)
 		//	return RGBAtoU32(255, 0, 0);
@@ -93,68 +95,64 @@ public:
 			}
 		}
 
-		if(visibleSphere == -1)
+		if(visibleSphere == -1) {
+			if(recursion == NUM_RECURSIVE_REFLECTIONS)
+				return lightProbe.BilinearSampleLightProbe(ray.vector);
 			return lightProbe.SampleLightProbe(ray.vector);
+		}
 
 		// Ambient / emissive
-		uint8_t matR, matG, matB;
-		RGBAfromU32(elements[visibleSphere].colorAmbient, matR, matG, matB);
-		float R=matR;
-		float G=matG;
-		float B=matB;
+		Color3f sum = Color3f(elements[visibleSphere].colorAmbient);
 
 		// Diffuse
-		RGBAfromU32(elements[visibleSphere].colorDiffuse, matR, matG, matB);
+		Color3f mat = Color3f(elements[visibleSphere].colorDiffuse);
 		for(int i=0; i < lights.size(); i++) {
 			float diffuseMultiplier = elements[visibleSphere].DiffuseIllumination(ray.extend(dist), lights[i]);
 			diffuseMultiplier *= lights[i].brightness;
-			uint8_t lightR, lightG, lightB;
-			RGBAfromU32(lights[i].color, lightR, lightG, lightB);
-			R += diffuseMultiplier * lightR * matR;
-			G += diffuseMultiplier * lightG * matG;
-			B += diffuseMultiplier * lightB * matB;
+			Color3f light = Color3f(lights[i].color);
+			sum += diffuseMultiplier *light * mat;// * light
 		}
 
 		if(recursion <= 0)
-			return RGBAtoU32(constrain(R), constrain(G), constrain(B));
+			return sum;
 		recursion--;
 
 		if(elements[visibleSphere].colorSpecular == RGBAtoU32(0, 0, 0))
-			return RGBAtoU32(constrain(R), constrain(G), constrain(B));
+			return sum;
 
 		// Specular
+		mat = Color3f(elements[visibleSphere].colorSpecular);
 		for(int i=0; i < lights.size(); i++) {
-			RGBAfromU32(elements[visibleSphere].colorSpecular, matR, matG, matB);
 			float specularMultiplier = elements[visibleSphere].SpecularIllumination(ray.extend(dist), lights[i], ray.vector);
 			specularMultiplier *= lights[i].brightness;
-			uint8_t lightR, lightG, lightB;
-			RGBAfromU32(lights[i].color, lightR, lightG, lightB);
-			R += specularMultiplier * lightR * matR;
-			G += specularMultiplier * lightG * matG;
-			B += specularMultiplier * lightB * matB;
+			Color3f light = Color3f(lights[i].color);
+			sum += specularMultiplier * light * mat;
 		}
 
 		// Reflective
 		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
-		uint32_t reflectedColor = this->TraceRay(reflectedRay, recursion);
-		uint8_t rR, rG, rB;
-		RGBAfromU32(reflectedColor, rR, rG, rB);
-		R += matR / 255.0f * rR;
-		G += matG / 255.0f * rG;
-		B += matB / 255.0f * rB;
+		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion);
+		sum += mat / 255.0f * reflectedColor;
 
-		return RGBAtoU32(constrain(R), constrain(G), constrain(B));
+		return sum;
 	}
 
 	struct lightProbe {
 		void * pixels;
 		AndroidBitmapInfo info;
 
-		uint32_t SampleLightProbe(Vector3 vec) {
+		Color3f SampleLightProbe(Vector3 vec) {
 			vec.Normalize();
 			float x = vec.y/4.0f+.5f;
 			float y = vec.z/4.0f+.5f;
-			return bilinearSample(info.width*x, info.height*y).U32();
+			return SampleBitmap(info.width*x, info.height*y)*1.1f;
+		}
+
+		Color3f BilinearSampleLightProbe(Vector3 vec) {
+			vec.Normalize();
+			float x = vec.y/4.0f+.5f;
+			float y = vec.z/4.0f+.5f;
+			return 1.1f*bilinearSample(info.width*x, info.height*y);
 		}
 
 private:

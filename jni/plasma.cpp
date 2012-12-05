@@ -59,7 +59,7 @@ void * workerThread(void * ptr){
 			if(HeatMapEnabled && !heatMap->GetFlip(x, y))
 				continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
-			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f);
+			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f).U32();
 			if(* oldValue != newValue) {
 				if(HeatMapEnabled)
 					heatMap->Post(x, y);
