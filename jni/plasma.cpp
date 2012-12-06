@@ -182,6 +182,26 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_PassLightPr
 }
 
 extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_PassBackground(JNIEnv * env, jobject obj, jobject mBitmap) {
+
+	AndroidBitmapInfo info;
+	void * mPixels;
+
+	if(!VerifyBitmap(env, mBitmap, info))
+		return;
+
+	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
+		LOGE("AndroidBitmap_lockPixels() failed!");
+
+	scene->background.pixels = mPixels;
+	scene->background.info = info;
+
+	AndroidBitmap_unlockPixels(env, mBitmap);
+	return;
+
+}
+
+extern "C"
 JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JNIEnv * env, jobject obj, jobject mBitmap, jlong timeElapsed) {
 
 	AndroidBitmapInfo info;

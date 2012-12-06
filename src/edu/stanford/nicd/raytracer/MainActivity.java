@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
 	
 	private Bitmap mImage;
 	private Bitmap mLightProbe;
+	private Bitmap mBackground;
 	private LinearLayout mLinearLayout;
 	private RaytraceTask raytraceThread;
 	int animationSpeed;
@@ -131,12 +132,17 @@ public class MainActivity extends Activity {
 				mImage.setDensity(Bitmap.DENSITY_NONE);
 				mImage.setHasAlpha(false);
 			}
+			Initialize(mImage);
 			if(mLightProbe == null) {
 				mLightProbe = BitmapFactory.decodeResource(getResources(), R.drawable.light_probe);
 				mLightProbe.setHasAlpha(false);
 			}
-			Initialize(mImage);
 			PassLightProbe(mLightProbe);
+			if(mBackground == null) {
+				mBackground = BitmapFactory.decodeResource(getResources(), R.drawable.background);
+				mBackground.setHasAlpha(false);
+			}
+			PassBackground(mBackground);
 			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
 				if(pointer_x!=-1 && pointer_y!=-1)
@@ -171,6 +177,7 @@ public class MainActivity extends Activity {
 
 	private static native void Initialize(Bitmap input);
 	private static native void PassLightProbe(Bitmap lightProbe);
+	private static native void PassBackground(Bitmap background);
 	private static native int RayTrace(Bitmap output, long timeElapsed);
 	private static native void ToggleAdaptiveSampling(boolean enabled);
 	private static native void SetInterlacing(int value);

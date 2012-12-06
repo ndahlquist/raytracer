@@ -10,7 +10,8 @@ LOCAL_CFLAGS =  -march=armv7 \
                 -mfloat-abi=softfp \
                 -mfpu=vfp \
                 -ffast-math
-APP_CFLAGS +=   -Ofast
+#                -funroll-loops
+APP_CFLAGS +=   -O3
 LOCAL_LDLIBS    := -lm -llog -ljnigraphics
 
 include $(BUILD_SHARED_LIBRARY)
