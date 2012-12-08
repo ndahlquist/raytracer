@@ -120,16 +120,8 @@ public:
 		if(elements[visibleSphere].colorSpecular == RGBAtoU32(0, 0, 0))
 			return sum;
 
-		// Specular
-		mat = Color3f(elements[visibleSphere].colorSpecular);
-		for(int i=0; i < lights.size(); i++) {
-			float specularMultiplier = elements[visibleSphere].SpecularIllumination(ray.extend(dist), lights[i], ray.vector);
-			specularMultiplier *= lights[i].brightness;
-			Color3f light = Color3f(lights[i].color);
-			sum += specularMultiplier * light * mat;
-		}
-
 		// Reflective
+		mat = Color3f(elements[visibleSphere].colorSpecular);
 		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion);
 		sum += mat / 255.0f * reflectedColor;

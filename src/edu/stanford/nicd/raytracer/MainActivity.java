@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
 		switchSampling.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				ToggleAdaptiveSampling(isChecked);
-				raytraceThread.resetCounter = true;
+				raytraceThread.ClearStats = true;
 			}
 		});
 		
@@ -58,7 +58,7 @@ public class MainActivity extends Activity {
 					SetInterlacing(2);
 				else
 					SetInterlacing(1);
-				raytraceThread.resetCounter = true;
+				raytraceThread.ClearStats = true;
 			}
 		});
 		
@@ -88,21 +88,27 @@ public class MainActivity extends Activity {
 	
 	class RaytraceTask extends AsyncTask<Integer, Void, Bitmap> {
 	    private boolean terminateThread = false;
-	    private boolean resetCounter = false;
+	    private boolean ClearStats = false;
 		private long startTime;
 		private long numRays;
 		private int numFrames;
 		private MotionEvent MultiTouch;
 
 	    public RaytraceTask() {
-	    	ResetCounter();
+	    	ClearStats();
 	    }
 
-	    public void ResetCounter() {
+	    public void ClearStats() {
+    		((TextView) findViewById(R.id.RaysPerSecond)).setText("--- x10^6 Viewing Rays/Second");
+    		((TextView) findViewById(R.id.FramesPerSecond)).setText("--- Frames/Second");
+    		ResetStats();
+			ClearStats = false;
+	    }
+	    
+	    public void ResetStats() {
 			startTime = System.currentTimeMillis();
 			numRays = 0;
 			numFrames = 0;
-			resetCounter = false;
 	    }
 
 	    // Do raytracing in background
@@ -135,8 +141,6 @@ public class MainActivity extends Activity {
 					else for(int p = 0; p < MultiTouch.getPointerCount(); p++)
 						TouchEvent(MultiTouch.getX(p), MultiTouch.getY(p));
 				}
-				if(resetCounter)
-					ResetCounter();
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
 				lastUpdateTime = System.currentTimeMillis();
 				numRays += RayTrace(mImage, animationSpeed * timeElapsed);
@@ -154,14 +158,14 @@ public class MainActivity extends Activity {
 	        }
 	        numFrames++;
 	        final float secondsElapsed = (System.currentTimeMillis() - startTime) / 1000.0f;
-	        if(secondsElapsed < 1.0f) {
-	    		((TextView) findViewById(R.id.RaysPerSecond)).setText("--- x10^6 Viewing Rays/Second");
-	    		((TextView) findViewById(R.id.FramesPerSecond)).setText("--- Frames/Second");
-	        } else {
+			if(ClearStats)
+				ClearStats();
+			else if(secondsElapsed > 1.0f) {
 	        	float RaysPerSecond = numRays / secondsElapsed;
 	        	float FramesPerSecond = numFrames / secondsElapsed;
-	        	((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond  / 1000000) + "x10^6 Viewing Rays/Second");
+	        	((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond / 1000000) + "x10^6 Viewing Rays/Second");
 	        	((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
+	        	ResetStats();
 	        }
 	    }
 	}

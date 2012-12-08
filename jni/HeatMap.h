@@ -8,45 +8,49 @@
 class HeatMap {
 public:
 
+#define REGION_SIZE 5
 #define MAX_PROBABILITY 1.0f
-#define MIN_PROBABILITY 0.01f
-#define PROBABILITY_DECAY .02f
+#define DECAY_RATE .3f
+#define RANDOM_SAMPLING_RATE 20
 
-	HeatMap(unsigned int width, unsigned int height, unsigned int frequency=10) {
-		this->frequency = frequency;
-		arrayWidth = width / frequency;
-		arrayHeight = height / frequency;
+	HeatMap(unsigned int width, unsigned int height) {
+		arrayWidth = width / REGION_SIZE;
+		arrayHeight = height / REGION_SIZE;
 		map = new float[arrayWidth * arrayHeight];
 		for(int y=0; y<arrayHeight; y++) {
 			for(int x=0; x<arrayWidth; x++) {
-				map[y*arrayWidth + x] = 0.0f;
+				map[y*arrayWidth + x] = MAX_PROBABILITY;
 			}
 		}
 	}
 
 	void Post(unsigned int xCoor, unsigned int yCoor) {
-		unsigned int x = xCoor / frequency;
-		unsigned int y = yCoor / frequency;
-		*MapCoordinate(x, y) = MAX_PROBABILITY-MIN_PROBABILITY;
-		*MapCoordinate(x+1, y+1) = MAX_PROBABILITY-MIN_PROBABILITY;
-		*MapCoordinate(x+1, y-1) = MAX_PROBABILITY-MIN_PROBABILITY;
-		*MapCoordinate(x-1, y+1) = MAX_PROBABILITY-MIN_PROBABILITY;
-		*MapCoordinate(x-1, y-1) = MAX_PROBABILITY-MIN_PROBABILITY;
+		const unsigned int x = xCoor / REGION_SIZE;
+		const unsigned int y = yCoor / REGION_SIZE;
+		*MapCoordinate(x, y) = MAX_PROBABILITY;
+		*MapCoordinate(x+1, y+1) = MAX_PROBABILITY;
+		*MapCoordinate(x+1, y-1) = MAX_PROBABILITY;
+		*MapCoordinate(x-1, y+1) = MAX_PROBABILITY;
+		*MapCoordinate(x-1, y-1) = MAX_PROBABILITY;
+	}
+
+	void DecayRegions() {
+		for(int y=0; y<arrayHeight; y++) {
+			for(int x=0; x<arrayWidth; x++) {
+				map[y*arrayWidth + x] -= DECAY_RATE;
+			}
+		}
 	}
 
 	bool GetFlip(unsigned int xCoor, unsigned int yCoor) {
-		float p = GetProbability(xCoor, yCoor);
-		if(rand() % 1024 > p * 1024)
-			return false;
-		return true;
-	}
-
-	float GetProbability(int xCoor, int yCoor) {
-		unsigned int x = xCoor / frequency;
-		unsigned int y = yCoor / frequency;
-		float currentP = * MapCoordinate(x, y);
-		* MapCoordinate(x, y) = std::max(0.0f, *MapCoordinate(x, y)-PROBABILITY_DECAY);
-		return currentP + MIN_PROBABILITY;
+		const unsigned int x = xCoor / REGION_SIZE;
+		const unsigned int y = yCoor / REGION_SIZE;
+		const float p = *MapCoordinate(x, y);
+		if(p > 0)
+			return true;
+		if(rand()%RANDOM_SAMPLING_RATE == 0)
+			return true;
+		return false;
 	}
 
 private:
@@ -59,11 +63,8 @@ private:
 		return map + y*arrayWidth + x;
 	}
 
-	unsigned int frequency;
 	unsigned int arrayWidth;
 	unsigned int arrayHeight;
-	unsigned int imageWidth;
-	unsigned int imageHeight;
 	float * map;
 };
 

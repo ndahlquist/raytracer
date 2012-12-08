@@ -53,7 +53,8 @@ struct thread_args {
 void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum; y < height; y+=NUM_THREADS) {
-		if(interlace_lines >= 1 && (frame_num+y) % interlace_lines != 0) // TODO: combine into for loop
+	//for(int y = args.threadNum*interlace_lines+frame_num%interlace_lines; y < height; y+=NUM_THREADS*interlace_lines) {
+		if((frame_num+y) % interlace_lines != 0)
 			continue;
 		for(int x = 0; x < width; x++) {
 			if(HeatMapEnabled && !heatMap->GetFlip(x, y))
@@ -151,8 +152,8 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
 		scene->Add(light0);
 
-		PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
-		scene->Add(light1);
+		//PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
+		//scene->Add(light1);
 
 		Camera camera0;
 		camera0.PinHole = Point3(-800, 0, 0);
@@ -216,6 +217,8 @@ JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JN
 	num_rays = 0;
 	ThreadedRayTrace(info, mPixels, timeElapsed);
 	AndroidBitmap_unlockPixels(env, mBitmap);
+	if(HeatMapEnabled)
+		heatMap->DecayRegions();
 	return num_rays;
 
 }
