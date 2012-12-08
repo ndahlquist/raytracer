@@ -33,13 +33,11 @@ struct Sphere3 {
 		this->offset /= .98f;
 	}
 
-	inline void SetMaterial(const uint32_t colorDiffuse) {
-		uint8_t R, G, B;
-		RGBAfromU32(colorDiffuse, R, G, B);
-		SetMaterial(RGBAtoU32(R/4, G/4, B/4), colorDiffuse, RGBAtoU32(200, 200, 200));
+	inline void SetMaterial(const Color3f color) {
+		SetMaterial(color / 4.0f, color, Color3f(.8, .8, .8));
 	}
 
-	inline void SetMaterial(const uint32_t colorAmbient, const uint32_t colorDiffuse, const uint32_t colorSpecular) {
+	inline void SetMaterial(const Color3f colorAmbient, const Color3f colorDiffuse, const Color3f colorSpecular) {
 		this->colorAmbient = colorAmbient;
 		this->colorDiffuse = colorDiffuse;
 		this->colorSpecular = colorSpecular;
@@ -136,9 +134,9 @@ struct Sphere3 {
 	Point3 center;
 	Vector3 offset;
 	float radius;
-	uint32_t colorAmbient;
-	uint32_t colorDiffuse;
-	uint32_t colorSpecular;
+	Color3f colorAmbient;
+	Color3f colorDiffuse;
+	Color3f colorSpecular;
 	struct AccelerationStructure {
 		float west_bound;
 		float east_bound;

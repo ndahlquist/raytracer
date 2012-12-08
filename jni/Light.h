@@ -6,15 +6,13 @@
 #include "Point3.h"
 
 struct PointLight {
-	PointLight(Point3 position, float brightness) {
+	PointLight(Point3 position, Color3f color) {
 		this->position = position;
-		this->brightness = brightness;
-		this->color = RGBAtoU32(255, 255, 255);
+		this->color = color;
 	}
 
 	Point3 position;
-	float brightness;
-	uint32_t color;
+	Color3f color;
 };
 
 #endif

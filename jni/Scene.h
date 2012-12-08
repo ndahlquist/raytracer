@@ -108,23 +108,22 @@ public:
 		Color3f mat = Color3f(elements[visibleSphere].colorDiffuse);
 		for(int i=0; i < lights.size(); i++) {
 			float diffuseMultiplier = elements[visibleSphere].DiffuseIllumination(ray.extend(dist), lights[i]);
-			diffuseMultiplier *= lights[i].brightness;
-			Color3f light = Color3f(lights[i].color);
-			sum += diffuseMultiplier *light * mat;// * light
+			Color3f light = lights[i].color;
+			sum += diffuseMultiplier * light * mat;
 		}
 
 		if(recursion <= 0)
 			return sum;
 		recursion--;
 
-		if(elements[visibleSphere].colorSpecular == RGBAtoU32(0, 0, 0))
+		if(elements[visibleSphere].colorSpecular == Color3f(0, 0, 0))
 			return sum;
 
 		// Reflective
 		mat = Color3f(elements[visibleSphere].colorSpecular);
 		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion);
-		sum += mat / 255.0f * reflectedColor;
+		sum += mat * reflectedColor;
 
 		return sum;
 	}

@@ -130,26 +130,26 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		scene = new Scene();
 
 		Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
-		sphere0.SetMaterial(RGBAtoU32(100, 0, 0));
+		sphere0.SetMaterial(Color3f(1, 0, 0));
 		scene->Add(sphere0);
 
 		Sphere3 sphere1 = Sphere3(80, 80, 0, 50);
-		sphere1.SetMaterial(RGBAtoU32(0, 100, 0));
+		sphere1.SetMaterial(Color3f(0, 1, 0));
 		scene->Add(sphere1);
 
 		Sphere3 sphere2 = Sphere3(80, -40, 20, 40);
-		sphere2.SetMaterial(RGBAtoU32(0, 0, 100));
+		sphere2.SetMaterial(Color3f(0, 0, 1));
 		scene->Add(sphere2);
 
 		Sphere3 sphere3 = Sphere3(5, 50, 20, 30);
-		sphere3.SetMaterial(RGBAtoU32(100, 100, 0));
+		sphere3.SetMaterial(Color3f(1, 1, 0));
 		scene->Add(sphere3);
 
 		Sphere3 sphere4 = Sphere3(480, 100, 300, 15);
-		sphere4.SetMaterial(RGBAtoU32(100, 0, 100));
+		sphere4.SetMaterial(Color3f(1, 0, 1));
 		scene->Add(sphere4);
 
-		PointLight light0 = PointLight(Point3(0, 200, -100), .01f);
+		PointLight light0 = PointLight(Point3(-300, 200, -100), Color3f(200, 200, 200));
 		scene->Add(light0);
 
 		//PointLight light1 = PointLight(Point3(0, -400, -100), .005f);

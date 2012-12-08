@@ -15,14 +15,6 @@ static __inline__ uint32_t RGBAtoU32(const uint8_t R, const uint8_t G, const uin
 	return output;
 }
 
-static __inline__ uint32_t RGBAtoU32(const uint8_t R, const uint8_t G, const uint8_t B, const uint8_t A) {
-	uint32_t output = R;
-	output |= G << 8;
-	output |= B << 16;
-	output |= A << 24;
-	return output;
-}
-
 static __inline__ float constrain(float x) {
 	if(x < 0)
 		return 0;
@@ -37,39 +29,15 @@ static __inline__ uint32_t * pixRef(AndroidBitmapInfo & info, void * pixels, uns
 	return line + x;
 }
 
-float * getPixel(float * inputPixels, unsigned int x, unsigned int y, unsigned int channel, unsigned int width) {
-	return inputPixels + 3 * y * width  + 3 * x + channel;
-}
-
-void U32BuftoFloatBuf(void * inputPixels, float * outputBuffer, int length) {
-	for(int i = 0; i < length; i++) {
-		uint32_t * p = (uint32_t *) inputPixels;
-		p += i;
-		uint8_t R, G, B;
-		RGBAfromU32(*p, R, G, B);
-
-		*(outputBuffer + 3*i) = R;
-		*(outputBuffer + 3*i + 1) = G;
-		*(outputBuffer + 3*i + 2) = B;
-	}
-}
-
-void FloatBuftoU32Buf(float * inputBuffer, void * outputPixels, int length) {
-	for(int i = 0; i < length; i++) {
-		uint8_t R, G, B;
-		R = *(inputBuffer + 3*i);
-		G = *(inputBuffer + 3*i + 1);
-		B = *(inputBuffer + 3*i + 2);
-
-		uint32_t * p = (uint32_t *) outputPixels;
-		p += i;
-		*p = RGBAtoU32(R, G, B);
-	}
-}
-
 class Color3f {
 public:
 	float r, g, b;
+
+	Color3f() {
+		r = 0;
+		g = 0;
+		b = 0;
+	}
 
 	Color3f(float R, float G, float B) {
 		r = R;
@@ -119,6 +87,9 @@ inline Color3f operator-(const Color3f& left, const Color3f& right) {
 }
 inline Color3f operator/(const Color3f& c, float a) {
 	return Color3f(c.r/a, c.g/a, c.b/a);
+}
+inline bool operator==(const Color3f& left, const Color3f& right) {
+	return left.r==right.r && left.g==right.g && left.b==right.b;
 }
 
 #endif
