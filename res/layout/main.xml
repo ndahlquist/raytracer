@@ -25,12 +25,12 @@
          android:text="@string/adaptive_sampling"
          android:textAppearance="?android:attr/textAppearanceMedium"  />
 
-     <Spinner
-         android:id="@+id/spinnerInterlacing"
+     <Switch
+         android:id="@+id/switchInterlacing"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:entries="@array/interlace_options"
-         android:textAppearance="?android:attr/textAppearanceMedium"  />
+         android:text="@string/interlacing"
+         android:textAppearance="?android:attr/textAppearanceMedium"  />=
     
     <SeekBar
         android:id="@+id/seekBarSpeed"

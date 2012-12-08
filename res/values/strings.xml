@@ -2,16 +2,5 @@
 <resources>
     <string name="app_name">Raytracer Demo</string>
     <string name="adaptive_sampling">Adaptive Sampling</string>
-    <string-array name="interlace_options">
-        <item>No Interlacing</item>
-        <item>2 Line Interlacing</item>
-        <item>3 Line Interlacing</item>
-        <item>4 Line Interlacing</item>
-        <item>5 Line Interlacing</item>
-        <item>6 Line Interlacing</item>
-        <item>7 Line Interlacing</item>
-        <item>8 Line Interlacing</item>
-        <item>9 Line Interlacing</item>
-        <item>10 Line Interlacing</item>
-    </string-array>
+    <string name="interlacing">Interlacing</string>
 </resources>
