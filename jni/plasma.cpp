@@ -53,7 +53,7 @@ struct thread_args {
 void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum; y < height; y+=NUM_THREADS) {
-		if(interlace_lines >= 1 && (frame_num+y) % interlace_lines != 0)
+		if(interlace_lines >= 1 && (frame_num+y) % interlace_lines != 0) // TODO: combine into for loop
 			continue;
 		for(int x = 0; x < width; x++) {
 			if(HeatMapEnabled && !heatMap->GetFlip(x, y))

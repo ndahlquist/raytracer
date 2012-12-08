@@ -1,0 +1,9 @@
+This is a tech demo I wrote for my introductory graphics class. It is a threaded CPU ray tracer written in native C++. On a multi-core device, it should run at close to real time (About 14 interlaced frames per second on my Nexus 7). Thank you for your interest!
+
+Features:
+-Acceleration structures, adaptive sampling, interlacing, native implementation and multi-threading make this a very fast ray tracer. You can interact with the spheres during the render: something that is not possible with any other ray tracer currently on the Android Play Store.
+-Phong shading, environment mapping and 4 levels of recursive reflections.
+
+FAQ:
+Why are there artifacts in the image?
+Both adaptive sampling and interlacing are lossy optimizations: you can turn these options off to improve image quality (at the cost of performance).

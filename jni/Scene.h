@@ -143,9 +143,10 @@ public:
 
 		Color3f SampleBackground(Vector3 vec) {
 			vec.Normalize();
-			float x = vec.y+.5f;
-			float y = vec.z+.5f;
-			return bilinearSample(info.width*x, info.height*y);
+			float x = 1.4*vec.y+.5f;
+			float y = 1.4*vec.z+.5f;
+			float aspect_ratio = (float) info.width/info.height;
+			return bilinearSample(info.width*x, info.height*y*aspect_ratio);
 		}
 	private:
 		Color3f Lerp(Color3f c1, Color3f c2, float t) {
@@ -182,30 +183,7 @@ public:
 			return SampleBitmap(info.width*x, info.height*y)*1.2f;
 		}
 
-		Color3f BilinearSampleLightProbe(Vector3 vec) {
-			vec.Normalize();
-			float x = vec.y/4.0f+.5f;
-			float y = vec.z/4.0f+.5f;
-			return bilinearSample(info.width*x, info.height*y);
-		}
-
 	private:
-		Color3f Lerp(Color3f c1, Color3f c2, float t) {
-			return Color3f((1-t)*c1.r + t*c2.r, (1-t)*c1.g + t*c2.g, (1-t)*c1.b + t*c2.b);
-		}
-
-		Color3f bilinearSample(float x, float y) {
-			Color3f bottomLeft = SampleBitmap(floor(x), floor(y));
-			Color3f bottomRight = SampleBitmap(ceil(x), floor(y));
-			Color3f topLeft = SampleBitmap(floor(x), ceil(y));
-			Color3f topRight = SampleBitmap(ceil(x), ceil(y));
-
-			Color3f bottomLerp = Lerp(bottomLeft, bottomRight, x - floor(x));
-			Color3f topLerp = Lerp(topLeft, topRight, x - floor(x));
-
-			return Lerp(bottomLerp, topLerp, y - floor(y));
-		}
-
 		Color3f SampleBitmap(int x, int y) {
 			if(x >= info.width || x < 0|| y >= info.height || y < 0)
 				return 0;

@@ -39,23 +39,7 @@ public class MainActivity extends Activity {
 		mLinearLayout = (LinearLayout) findViewById(R.id.background);
 		mLinearLayout.setOnTouchListener(new View.OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent ev) {
-				final float x = ev.getX();
-		        final float y = ev.getY();
-		        switch(ev.getAction()) {
-			        case (MotionEvent.ACTION_UP):
-			        	raytraceThread.pointer_x = -1;
-		        		raytraceThread.pointer_y = -1;
-			        break;
-			        case (MotionEvent.ACTION_MOVE):
-			        	raytraceThread.pointer_x = x;
-		        		raytraceThread.pointer_y = y;
-			        break;
-			        case (MotionEvent.ACTION_DOWN):
-			        	raytraceThread.pointer_x = x;
-		        		raytraceThread.pointer_y = y;
-			        break;
-		        }
-		        
+			    raytraceThread.MultiTouch = ev;
 				return true;
 			}
 	    });
@@ -108,14 +92,23 @@ public class MainActivity extends Activity {
         super.onPause();
         raytraceThread.terminateThread=true;
     }
-
+	
+	class touch {
+		touch(float x, float y) {
+			this.x = x;
+			this.y = y;
+		}
+		float x;
+		float y;
+	};
+	
 	class RaytraceTask extends AsyncTask<Integer, Void, Bitmap> {
 	    private boolean terminateThread = false;
 		private long startTime = 0;
 		private long numRays = 0;
 		private int numFrames = 0;
-		private float pointer_x = -1;
-		private float pointer_y = -1;
+		private MotionEvent MultiTouch;
+		
 		
 	    public RaytraceTask() {
 	        startTime = System.currentTimeMillis();
@@ -145,8 +138,12 @@ public class MainActivity extends Activity {
 			PassBackground(mBackground);
 			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
-				if(pointer_x!=-1 && pointer_y!=-1)
-					TouchEvent(pointer_x, pointer_y);
+				if(MultiTouch != null) {
+					if(MultiTouch.getAction() == MotionEvent.ACTION_UP)
+						MultiTouch = null;
+					else for(int p = 0; p < MultiTouch.getPointerCount(); p++)
+						TouchEvent(MultiTouch.getX(p), MultiTouch.getY(p));
+				}
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
 				lastUpdateTime = System.currentTimeMillis();
 				numRays += RayTrace(mImage, animationSpeed * timeElapsed);
