@@ -11,7 +11,7 @@
 #include "Ray3.h"
 #include "Light.h"
 
-#define NUM_RECURSIVE_REFLECTIONS 4
+#define NUM_RECURSIVE_REFLECTIONS 4 //3 TODO 
 
 struct Camera {
 	Point3 PinHole;
@@ -69,14 +69,15 @@ public:
 		thisSphere->applyForce(-5.0f*Normal);
 	}
 
-	Color3f TraceRay(int x, int y) {
+	Color3f TraceRay(int x, int y, bool & doesIntersect) {
+		doesIntersect = true;
 		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
 		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
 		ray.vector.Normalize();
-		return TraceRay(ray, NUM_RECURSIVE_REFLECTIONS);
+		return TraceRay(ray, NUM_RECURSIVE_REFLECTIONS, doesIntersect);
 	}
 
-	Color3f TraceRay(Ray3 ray, int recursion) {
+	Color3f TraceRay(Ray3 ray, int recursion, bool & doesIntersect) {
 
 		//if(elements[1].AcceleratedIntersectionTest(ray) == -2)
 		//	return RGBAtoU32(255, 0, 0);
@@ -96,8 +97,10 @@ public:
 		}
 
 		if(visibleSphere == -1) {
-			if(recursion == NUM_RECURSIVE_REFLECTIONS)
-				return background.SampleBackground(ray.vector);
+			if(recursion == NUM_RECURSIVE_REFLECTIONS) {
+				doesIntersect = false;
+				return Color3f(0,0,0);
+			}
 			return lightProbe.SampleLightProbe(ray.vector);
 		}
 
@@ -122,46 +125,11 @@ public:
 		// Reflective
 		mat = Color3f(elements[visibleSphere].colorSpecular);
 		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
-		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion);
+		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion, doesIntersect);
 		sum += mat * reflectedColor;
 
 		return sum;
 	}
-
-	struct background {
-		void * pixels;
-		AndroidBitmapInfo info;
-
-		Color3f SampleBackground(Vector3 vec) {
-			vec.Normalize();
-			float x = 1.4*vec.y+.5f;
-			float y = 1.4*vec.z+.5f;
-			float aspect_ratio = (float) info.width/info.height;
-			return bilinearSample(info.width*x, info.height*y*aspect_ratio);
-		}
-	private:
-		Color3f Lerp(Color3f c1, Color3f c2, float t) {
-			return Color3f((1-t)*c1.r + t*c2.r, (1-t)*c1.g + t*c2.g, (1-t)*c1.b + t*c2.b);
-		}
-
-		Color3f bilinearSample(float x, float y) {
-			Color3f bottomLeft = SampleBitmap(floor(x), floor(y));
-			Color3f bottomRight = SampleBitmap(ceil(x), floor(y));
-			Color3f topLeft = SampleBitmap(floor(x), ceil(y));
-			Color3f topRight = SampleBitmap(ceil(x), ceil(y));
-
-			Color3f bottomLerp = Lerp(bottomLeft, bottomRight, x - floor(x));
-			Color3f topLerp = Lerp(topLeft, topRight, x - floor(x));
-
-			return Lerp(bottomLerp, topLerp, y - floor(y));
-		}
-
-		Color3f SampleBitmap(int x, int y) {
-			if(x >= info.width || x < 0|| y >= info.height || y < 0)
-				return 0;
-			return Color3f(* pixRef(info, pixels, x, y));
-		}
-	} background;
 
 	struct lightProbe {
 		void * pixels;

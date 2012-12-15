@@ -31,6 +31,37 @@ static int num_rays;
 static int width;
 static int height;
 
+	struct background {
+		void * pixels;
+		AndroidBitmapInfo info;
+
+		Color3f SampleBackground(float x, float y) {
+			return bilinearSample(info.width*x, info.height*y);
+		}
+	private:
+		Color3f Lerp(Color3f c1, Color3f c2, float t) {
+			return Color3f((1-t)*c1.r + t*c2.r, (1-t)*c1.g + t*c2.g, (1-t)*c1.b + t*c2.b);
+		}
+
+		Color3f bilinearSample(float x, float y) {
+			Color3f bottomLeft = SampleBitmap(floor(x), floor(y));
+			Color3f bottomRight = SampleBitmap(ceil(x), floor(y));
+			Color3f topLeft = SampleBitmap(floor(x), ceil(y));
+			Color3f topRight = SampleBitmap(ceil(x), ceil(y));
+
+			Color3f bottomLerp = Lerp(bottomLeft, bottomRight, x - floor(x));
+			Color3f topLerp = Lerp(topLeft, topRight, x - floor(x));
+
+			return Lerp(bottomLerp, topLerp, y - floor(y));
+		}
+
+		Color3f SampleBitmap(int x, int y) {
+			if(x >= info.width || x < 0|| y >= info.height || y < 0)
+				return 0;
+			return Color3f(* pixRef(info, pixels, x, y));
+		}
+	} background;
+
 static bool VerifyBitmap(JNIEnv * env, jobject bitmap, AndroidBitmapInfo & info) {
 	int ret;
 	if((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
@@ -57,15 +88,22 @@ void * workerThread(void * ptr){
 		if((frame_num+y) % interlace_lines != 0)
 			continue;
 		for(int x = 0; x < width; x++) {
-			if(HeatMapEnabled && !heatMap->GetFlip(x, y))
-				continue;
+			//if(HeatMapEnabled && !heatMap->GetFlip(x, y))
+			//	continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
-			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f).U32();
-			if(* oldValue != newValue) {
-				if(HeatMapEnabled)
-					heatMap->Post(x, y);
-				* oldValue = newValue;
-			}
+			bool doesIntersect;
+			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f, doesIntersect).U32();
+			if(doesIntersect)
+				* oldValue = AlphaMask(newValue, 255);
+			else if(* oldValue >> 24 != 0) // If the background is not already drawn, draw background.
+				* oldValue = AlphaMask(background.SampleBackground((float) x/width,(float) y/height).U32(), 0);
+			//if(* oldValue != newValue) {
+			//	if(HeatMapEnabled)
+			//		heatMap->Post(x, y);
+			//	* oldValue = newValue;
+			//}
+			//if(!doesIntersect)
+			//	* oldValue = RGBAtoU32(0, 100, 0);
 			num_rays++;
 		}
 	}
@@ -119,6 +157,7 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 extern "C"
 JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(JNIEnv * env, jobject obj, jobject mBitmap) {
 
+	// Store the bitmap's height and width
 	AndroidBitmapInfo info;
 	if(!VerifyBitmap(env, mBitmap, info))
 		return;
@@ -126,15 +165,16 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	height = info.height;
 	if(heatMap == NULL)
 		heatMap = new HeatMap(info.width, info.height);
+	// Initialize elements of the scene.
 	if(scene == NULL) {
 		scene = new Scene();
 
 		Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
-		sphere0.SetMaterial(Color3f(1, 0, 0));
+		sphere0.SetMaterial(Color3f(.7, 0, 0));
 		scene->Add(sphere0);
 
 		Sphere3 sphere1 = Sphere3(80, 80, 0, 50);
-		sphere1.SetMaterial(Color3f(0, 1, 0));
+		sphere1.SetMaterial(Color3f(0, .7, 0));
 		scene->Add(sphere1);
 
 		Sphere3 sphere2 = Sphere3(80, -40, 20, 40);
@@ -142,7 +182,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		scene->Add(sphere2);
 
 		Sphere3 sphere3 = Sphere3(5, 50, 20, 30);
-		sphere3.SetMaterial(Color3f(1, 1, 0));
+		sphere3.SetMaterial(Color3f(.7, .7, 0));
 		scene->Add(sphere3);
 
 		Sphere3 sphere4 = Sphere3(480, 100, 300, 15);
@@ -152,14 +192,24 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		PointLight light0 = PointLight(Point3(-300, 200, -100), Color3f(200, 200, 200));
 		scene->Add(light0);
 
-		//PointLight light1 = PointLight(Point3(0, -400, -100), .005f);
-		//scene->Add(light1);
+		PointLight light1 = PointLight(Point3(0, -100, -1600), Color3f(200, 200, 200));
+		scene->Add(light1);
 
 		Camera camera0;
 		camera0.PinHole = Point3(-800, 0, 0);
 		camera0.LensPlane = 0;
 		scene->Add(camera0);
 	}
+	void * mPixels;
+	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
+		LOGE("AndroidBitmap_lockPixels() failed!");
+	// Initialize alpha channel to 255 (intersection flag)
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			* pixRef(info, mPixels, x, y) = AlphaMask(RGBtoU32(0, 0, 100), 255);
+		}
+	}
+	AndroidBitmap_unlockPixels(env, mBitmap);
 }
 
 extern "C"
@@ -178,7 +228,6 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_PassLightPr
 	scene->lightProbe.info = info;
 
 	AndroidBitmap_unlockPixels(env, mBitmap);
-	return;
 
 }
 
@@ -194,11 +243,10 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_PassBackgro
 	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
 		LOGE("AndroidBitmap_lockPixels() failed!");
 
-	scene->background.pixels = mPixels;
-	scene->background.info = info;
+	background.pixels = mPixels;
+	background.info = info;
 
 	AndroidBitmap_unlockPixels(env, mBitmap);
-	return;
 
 }
 

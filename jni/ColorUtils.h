@@ -2,17 +2,23 @@
 #ifndef __COLORUTILS_H__
 #define __COLORUTILS_H__
 
-static void RGBAfromU32(const uint32_t in, uint8_t & R, uint8_t & G, uint8_t & B) {
+static void RGBfromU32(const uint32_t in, uint8_t & R, uint8_t & G, uint8_t & B) { // TODO inline
 	R = in;
 	G = in >> 8;
 	B = in >> 16;
 }
 
-static __inline__ uint32_t RGBAtoU32(const uint8_t R, const uint8_t G, const uint8_t B) {
+static __inline__ uint32_t RGBtoU32(const uint8_t R, const uint8_t G, const uint8_t B) {
 	uint32_t output = R;
 	output |= G << 8;
 	output |= B << 16;
 	return output;
+}
+
+static __inline__ uint32_t AlphaMask(uint32_t input, const uint8_t A) {
+	input &= (~0) >> 8;
+	input |= A << 24;
+	return input;
 }
 
 static __inline__ float constrain(float x) {
@@ -47,14 +53,14 @@ public:
 
 	Color3f(uint32_t v) {
 		uint8_t R, G, B;
-		RGBAfromU32(v, R, G, B);
+		RGBfromU32(v, R, G, B);
 		r = R;
 		g = G;
 		b = B;
 	}
 
 	uint32_t U32() {
-		return RGBAtoU32(constrain(r), constrain(g), constrain(b));
+		return RGBtoU32(constrain(r), constrain(g), constrain(b));
 	}
 
 	float Luminance() {
