@@ -1,4 +1,3 @@
-
 #ifndef __SCENE_H__
 #define __SCENE_H__
 
@@ -8,10 +7,12 @@
 #include "ColorUtils.h"
 
 #include "Sphere3.h"
+#include "BAH.h"
+#include "BVH.h"
 #include "Ray3.h"
 #include "Light.h"
 
-#define NUM_RECURSIVE_REFLECTIONS 4 //3 TODO 
+#define NUM_RECURSIVE_REFLECTIONS 0 //4 TODO 
 
 struct Camera {
 	Point3 PinHole;
@@ -40,13 +41,14 @@ public:
 	}
 
 	void BuildAccelerationStructure() {
+		BoundingAreaHierarchy.Initialize(mCamera.PinHole);
 		for(int i=0; i < elements.size(); i++) {
-			elements[i].BuildAccelerationStructure(mCamera.PinHole);
+			BoundingAreaHierarchy.Index(& elements[i]);
 		}
 	};
 
 	void PokeSphere(float x, float y) { // TODO: this reuses a lot of code: try to combine with TraceRay
-		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
+		/*Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
 		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
 		ray.vector.Normalize();
 		float dist = FLT_MAX;
@@ -66,7 +68,7 @@ public:
 
 		Vector3 Normal = ray.extend(dist) - thisSphere->center;
 		Normal.Normalize();
-		thisSphere->applyForce(-5.0f*Normal);
+		thisSphere->applyForce(-5.0f*Normal);*/
 	}
 
 	Color3f TraceRay(int x, int y, bool & doesIntersect) {
@@ -79,24 +81,30 @@ public:
 
 	Color3f TraceRay(Ray3 ray, int recursion, bool & doesIntersect) {
 
-		//if(elements[1].AcceleratedIntersectionTest(ray) == -2)
-		//	return RGBAtoU32(255, 0, 0);
-
 		float dist = FLT_MAX;
-		int visibleSphere = -1;
-		for(int i=0; i < elements.size(); i++) {
-			float this_dist;
-			if(ray.endpoint == mCamera.PinHole)
-				this_dist = elements[i].AcceleratedIntersectionTest(ray); // TODO: implement b-search over accel structure.
-			else
-				this_dist = elements[i].IntersectionTest(ray);
+		Sphere3 * visibleSphere = NULL;
+		
+		if(ray.endpoint == mCamera.PinHole) { // Viewing rays
+			std::vector<Sphere3 *> candidates = BoundingAreaHierarchy.IntersectionCandidates(ray);
+			if(candidates.size()==0)
+				return Color3f(0,200,0);
+				
+			for(int i=0; i < candidates.size(); i++) {
+				float this_dist = candidates[i]->IntersectionTest(ray);
+				if(this_dist >= 0 && this_dist < dist) {
+					dist = this_dist;
+					visibleSphere = candidates[i];
+				}
+			}
+		} /*else for(int i=0; i < elements.size(); i++) {
+			float this_dist = elements[i].IntersectionTest(ray);
 			if(this_dist >= 0 && this_dist < dist) {
 				dist = this_dist;
-				visibleSphere = i;
+				visibleSphere = & elements[i];
 			}
-		}
+		}*/
 
-		if(visibleSphere == -1) {
+		if(visibleSphere == NULL) {
 			if(recursion == NUM_RECURSIVE_REFLECTIONS) {
 				doesIntersect = false;
 				return Color3f(0,0,0);
@@ -105,12 +113,12 @@ public:
 		}
 
 		// Ambient / emissive
-		Color3f sum = Color3f(elements[visibleSphere].colorAmbient);
+		Color3f sum = Color3f(visibleSphere->colorAmbient);
 
 		// Diffuse
-		Color3f mat = Color3f(elements[visibleSphere].colorDiffuse);
+		Color3f mat = Color3f(visibleSphere->colorDiffuse);
 		for(int i=0; i < lights.size(); i++) {
-			float diffuseMultiplier = elements[visibleSphere].DiffuseIllumination(ray.extend(dist), lights[i]);
+			float diffuseMultiplier = visibleSphere->DiffuseIllumination(ray.extend(dist), lights[i]);
 			Color3f light = lights[i].color;
 			sum += diffuseMultiplier * light * mat;
 		}
@@ -119,12 +127,12 @@ public:
 			return sum;
 		recursion--;
 
-		if(elements[visibleSphere].colorSpecular == Color3f(0, 0, 0))
+		if(visibleSphere->colorSpecular == Color3f(0, 0, 0))
 			return sum;
 
 		// Reflective
-		mat = Color3f(elements[visibleSphere].colorSpecular);
-		Ray3 reflectedRay = elements[visibleSphere].ReflectRay(ray, dist);
+		mat = visibleSphere->colorSpecular;
+		Ray3 reflectedRay = visibleSphere->ReflectRay(ray, dist);
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion, doesIntersect);
 		sum += mat * reflectedColor;
 
@@ -154,6 +162,9 @@ private:
 	std::vector<Sphere3> elements;
 	std::vector<PointLight> lights;
 	Camera mCamera;
+	
+	BAH BoundingAreaHierarchy;
+	
 };
 
 #endif  // __SCENE_H__

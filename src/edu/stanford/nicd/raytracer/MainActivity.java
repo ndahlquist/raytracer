@@ -41,15 +41,6 @@ public class MainActivity extends Activity {
 			}
 	    });
 		
-		Switch switchSampling = (Switch) findViewById(R.id.switchSampling);
-		switchSampling.setChecked(true);
-		switchSampling.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				ToggleAdaptiveSampling(isChecked);
-				raytraceThread.ClearStats = true;
-			}
-		});
-		
 		Switch switchInterlacing = (Switch) findViewById(R.id.switchInterlacing);
 		switchInterlacing.setChecked(true);
 		switchInterlacing.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -179,7 +170,6 @@ public class MainActivity extends Activity {
 	private static native void PassLightProbe(Bitmap lightProbe);
 	private static native void PassBackground(Bitmap background);
 	private static native int RayTrace(Bitmap output, long timeElapsed);
-	private static native void ToggleAdaptiveSampling(boolean enabled);
 	private static native void SetInterlacing(int value);
 	private static native void TouchEvent(float x, float y);
 	

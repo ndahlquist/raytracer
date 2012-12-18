@@ -1,4 +1,3 @@
-// Ray3.h
 #ifndef __RAY3_H__
 #define __RAY3_H__
 

@@ -14,7 +14,6 @@
 #include "Ray3.h"
 #include "Sphere3.h"
 #include "Scene.h"
-#include "HeatMap.h"
 
 #define  LOG_TAG    "libplasma"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -23,8 +22,6 @@
 #define NUM_THREADS 8
 
 static Scene * scene;
-static HeatMap * heatMap;
-static bool HeatMapEnabled = true;
 static int interlace_lines = 2;
 static int frame_num = 0;
 static int num_rays;
@@ -56,7 +53,7 @@ static int height;
 		}
 
 		Color3f SampleBitmap(int x, int y) {
-			if(x >= info.width || x < 0|| y >= info.height || y < 0)
+			if(x >= info.width || x < 0|| y >= info.height || y < 0) // TODO
 				return 0;
 			return Color3f(* pixRef(info, pixels, x, y));
 		}
@@ -88,8 +85,6 @@ void * workerThread(void * ptr){
 		if((frame_num+y) % interlace_lines != 0)
 			continue;
 		for(int x = 0; x < width; x++) {
-			//if(HeatMapEnabled && !heatMap->GetFlip(x, y))
-			//	continue;
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			bool doesIntersect;
 			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f, doesIntersect).U32();
@@ -97,13 +92,6 @@ void * workerThread(void * ptr){
 				* oldValue = AlphaMask(newValue, 255);
 			else if(* oldValue >> 24 != 0) // If the background is not already drawn, draw background.
 				* oldValue = AlphaMask(background.SampleBackground((float) x/width,(float) y/height).U32(), 0);
-			//if(* oldValue != newValue) {
-			//	if(HeatMapEnabled)
-			//		heatMap->Post(x, y);
-			//	* oldValue = newValue;
-			//}
-			//if(!doesIntersect)
-			//	* oldValue = RGBAtoU32(0, 100, 0);
 			num_rays++;
 		}
 	}
@@ -163,8 +151,6 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		return;
 	width = info.width;
 	height = info.height;
-	if(heatMap == NULL)
-		heatMap = new HeatMap(info.width, info.height);
 	// Initialize elements of the scene.
 	if(scene == NULL) {
 		scene = new Scene();
@@ -265,15 +251,8 @@ JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JN
 	num_rays = 0;
 	ThreadedRayTrace(info, mPixels, timeElapsed);
 	AndroidBitmap_unlockPixels(env, mBitmap);
-	if(HeatMapEnabled)
-		heatMap->DecayRegions();
 	return num_rays;
 
-}
-
-extern "C"
-JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_ToggleAdaptiveSampling(JNIEnv * env, jobject obj, jboolean enabled) {
-	HeatMapEnabled = enabled;
 }
 
 extern "C"

@@ -1,4 +1,3 @@
-
 #ifndef __SPHERE3_H__
 #define __SPHERE3_H__
 
@@ -17,6 +16,7 @@ struct Sphere3 {
 		this->radius = radius;
 		this->offset = Vector3(0,0,0);
 	}
+
 	inline Sphere3(const float x, const float y, const float z, const float radius) {
 		this->center = Point3(x, y, z);
 		this->radius = radius;
@@ -43,48 +43,6 @@ struct Sphere3 {
 		this->colorSpecular = colorSpecular;
 	}
 
-	void BuildAccelerationStructure(Point3 eye) {
-
-		Vector3 toCenter = center - eye;
-		float distToTangent = sqrt(toCenter.LengthSq() - radius);
-		toCenter.Normalize();
-		float sinOfAngle = radius / distToTangent;
-		float cosOfAngle = 1 - pow(radius / distToTangent, 2);
-
-		// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,1,0)
-		Vector3 perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,1,0))); // TODO: simplify this.
-		perpendicular.Normalize();
-
-		Vector3 toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
-		AccelerationStructure.east_bound = toTangent.y;
-
-		toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
-		AccelerationStructure.west_bound = toTangent.y;
-
-		// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,0,1)
-		perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,0,1))); // TODO: simplify this.
-		perpendicular.Normalize();
-
-		toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
-		AccelerationStructure.north_bound = toTangent.z;
-
-		toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
-		AccelerationStructure.south_bound = toTangent.z;
-	}
-
-	float AcceleratedIntersectionTest(Ray3 ray) {
-		if(ray.vector.z > AccelerationStructure.north_bound)
-			return -2;
-		if(ray.vector.z < AccelerationStructure.south_bound)
-			return -2;
-		if(ray.vector.y < AccelerationStructure.west_bound)
-			return -2;
-		if(ray.vector.y > AccelerationStructure.east_bound)
-			return -2;
-
-		return IntersectionTest(ray);
-	}
-
 	float IntersectionTest(Ray3 ray) {
 
 		Vector3 relativeCenter = center - ray.endpoint;
@@ -99,7 +57,6 @@ struct Sphere3 {
 
 		return (projection - ray.endpoint).Length() - sqrt(pow(radius, 2) - distSquared);
 	}
-
 
 	float DiffuseIllumination(Point3 surfacePoint, PointLight pLight) {
 		Vector3 normal = surfacePoint - center;
@@ -137,12 +94,6 @@ struct Sphere3 {
 	Color3f colorAmbient;
 	Color3f colorDiffuse;
 	Color3f colorSpecular;
-	struct AccelerationStructure {
-		float west_bound;
-		float east_bound;
-		float south_bound;
-		float north_bound;
-	} AccelerationStructure;
 };
 
 #endif  // __SPHERE3_H__

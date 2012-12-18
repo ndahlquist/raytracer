@@ -19,18 +19,11 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
      <Switch
-         android:id="@+id/switchSampling"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:text="@string/adaptive_sampling"
-         android:textAppearance="?android:attr/textAppearanceMedium"  />
-
-     <Switch
          android:id="@+id/switchInterlacing"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:text="@string/interlacing"
-         android:textAppearance="?android:attr/textAppearanceMedium"  />=
+         android:textAppearance="?android:attr/textAppearanceMedium" />
     
     <SeekBar
         android:id="@+id/seekBarSpeed"

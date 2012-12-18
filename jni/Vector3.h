@@ -1,4 +1,3 @@
-
 #ifndef __STVECTOR3_H__
 #define __STVECTOR3_H__
 
@@ -138,4 +137,3 @@ inline Vector3 operator-(const Vector3& v) {
 }
 
 #endif  // __STVECTOR3_H__
-

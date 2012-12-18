@@ -1,4 +1,3 @@
-
 #ifndef __COLORUTILS_H__
 #define __COLORUTILS_H__
 
