@@ -45,6 +45,7 @@ public:
 		for(int i=0; i < elements.size(); i++) {
 			BoundingAreaHierarchy.Index(& elements[i]);
 		}
+		BoundingAreaHierarchy.Sort();
 	};
 
 	void PokeSphere(float x, float y) { // TODO: this reuses a lot of code: try to combine with TraceRay
@@ -88,6 +89,8 @@ public:
 			std::vector<Sphere3 *> candidates = BoundingAreaHierarchy.IntersectionCandidates(ray);
 			if(candidates.size()==0)
 				return Color3f(0,200,0);
+			//if(candidates.size()==1)
+			//	return Color3f(0,0,200);
 				
 			for(int i=0; i < candidates.size(); i++) {
 				float this_dist = candidates[i]->IntersectionTest(ray);
