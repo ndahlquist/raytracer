@@ -11,12 +11,8 @@
 #include "BVH.h"
 #include "Ray3.h"
 
-#define NUM_RECURSIVE_REFLECTIONS 0 //3 TODO 
-
-struct Camera { // TODO
-	Point3 PinHole;
-	float LensPlane; // TODO: Generalize this to a ray
-};
+#define NUM_RECURSIVE_REFLECTIONS 0 //3 TODO
+#define FOCAL_LENGTH 2.6f
 
 class Scene {
 public:
@@ -36,12 +32,8 @@ public:
 		this->lightDirection=lightDirection;
 	}
 
-	void SetCamera(Camera camera) {
-		mCamera = camera;
-	}
-
 	void BuildAccelerationStructure() {
-		BoundingAreaHierarchy.Initialize(mCamera.PinHole);
+		BoundingAreaHierarchy.Initialize(Point3(0,0,0));
 		for(int i=0; i < elements.size(); i++) {
 			BoundingAreaHierarchy.Index(& elements[i]);
 		}
@@ -55,8 +47,7 @@ public:
 	};
 
 	void PokeSphere(float x, float y) {
-		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
-		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
+		Ray3 ray = Ray3(Vector3(FOCAL_LENGTH, x, y));
 		ray.vector.Normalize();
 		float dist;
 		Sphere3 * thisSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
@@ -69,10 +60,9 @@ public:
 		thisSphere->applyForce(-4.0f*Normal);
 	}
 
-	Color3f TraceRay(int x, int y, bool & doesIntersect) {
+	inline Color3f TraceRay(float x, float y, bool & doesIntersect) {
 		doesIntersect = true;
-		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
-		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
+		Ray3 ray = Ray3(Vector3(FOCAL_LENGTH, x, y));
 		ray.vector.Normalize();
 		return TraceRay(ray, NUM_RECURSIVE_REFLECTIONS, doesIntersect);
 	}
@@ -81,7 +71,8 @@ public:
 
 		float dist;
 		Sphere3 * visibleSphere;
-		if(ray.endpoint == mCamera.PinHole) { // Viewing rays
+		if(ray.endpoint == Point3(0,0,0)) { // Viewing rays // TODO
+			//visibleSphere = BoundingVolumeHierarchy.AcceleratedIntersection(ray, dist);
 			visibleSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
 			if(visibleSphere == NULL) {
 				doesIntersect = false;
@@ -139,7 +130,6 @@ public:
 private:
 
 	std::vector<Sphere3> elements;
-	Camera mCamera;
 	Vector3 lightDirection;
 
 	BAH BoundingAreaHierarchy;

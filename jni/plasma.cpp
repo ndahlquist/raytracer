@@ -87,7 +87,7 @@ void * workerThread(void * ptr){
 		for(int x = 0; x < width; x++) {
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			bool doesIntersect;
-			uint32_t newValue = scene->TraceRay(x - width / 2.0f, y - height / 2.0f, doesIntersect).U32();
+			uint32_t newValue = scene->TraceRay((float) x / width - .5f, (float) y / width - .5, doesIntersect).U32(); // TODO
 			if(doesIntersect)
 				* oldValue = AlphaMask(newValue, 255);
 			else if(* oldValue >> 24 != 0) // If the background is not already drawn, draw background.
@@ -104,20 +104,20 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 	frame += timeElapsed / 3000.0f;
 	frame_num++;
 
-	Sphere3 * sphere0 = scene->ReturnSphere(0);
-	sphere0->setPosition(Point3(100, -90, -100));
+	Sphere3 * sphere0 = scene->ReturnSphere(0); // Red
+	sphere0->setPosition(Point3(900, -90, 0));
 
-	Sphere3 * sphere1 = scene->ReturnSphere(1);
-	sphere1->setPosition(Point3(80, 80+40*sin(frame/34.0f + 6), -90*sin(frame/43.0f)));
+	Sphere3 * sphere1 = scene->ReturnSphere(1); // Blue
+	sphere1->setPosition(Point3(880, 80+40*sin(frame/34.0f + 6), 100-90*sin(frame/43.0f)));
 
-	Sphere3 * sphere2 = scene->ReturnSphere(2);
-	sphere2->setPosition(Point3(80, -40+10*sin(frame/54.0f + 5), 20+40*sin(frame/30.0f)));
+	Sphere3 * sphere2 = scene->ReturnSphere(2); // Green
+	sphere2->setPosition(Point3(880, -40+10*sin(frame/54.0f + 5), 120+40*sin(frame/30.0f)));
 
-	Sphere3 * sphere3 = scene->ReturnSphere(3);
-	sphere3->setPosition(Point3(5, 50+23*sin(frame/19.0f), 20+23*cos(frame/20.0f)));
+	Sphere3 * sphere3 = scene->ReturnSphere(3); // Yellow
+	sphere3->setPosition(Point3(805, 50+23*sin(frame/19.0f), 120+23*cos(frame/20.0f)));
 
-	Sphere3 * sphere4 = scene->ReturnSphere(4);
-	sphere4->setPosition(Point3(80+200*sin(frame/23.0f), 20+40*cos(frame/11.0f), 70+150*cos(frame/23.0f)));
+	Sphere3 * sphere4 = scene->ReturnSphere(4); // Purple
+	sphere4->setPosition(Point3(880+200*sin(frame/23.0f), 20+40*cos(frame/11.0f), 170+150*cos(frame/23.0f)));
 
 	scene->BuildAccelerationStructure();
 
@@ -155,32 +155,27 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	if(scene == NULL) {
 		scene = new Scene();
 
-		Sphere3 sphere0 = Sphere3(100, -90, -100, 100);
+		Sphere3 sphere0 = Sphere3(100);
 		sphere0.SetMaterial(Color3f(200, 0, 0));
 		scene->Add(sphere0);
 
-		Sphere3 sphere1 = Sphere3(80, 80, 0, 50);
+		Sphere3 sphere1 = Sphere3(50);
 		sphere1.SetMaterial(Color3f(0, 200, 0));
 		scene->Add(sphere1);
 
-		Sphere3 sphere2 = Sphere3(80, -40, 20, 40);
+		Sphere3 sphere2 = Sphere3(40);
 		sphere2.SetMaterial(Color3f(0, 0, 255));
 		scene->Add(sphere2);
 
-		Sphere3 sphere3 = Sphere3(5, 50, 20, 30);
+		Sphere3 sphere3 = Sphere3(30);
 		sphere3.SetMaterial(Color3f(200, 200, 0));
 		scene->Add(sphere3);
 
-		Sphere3 sphere4 = Sphere3(480, 100, 300, 15);
+		Sphere3 sphere4 = Sphere3(15);
 		sphere4.SetMaterial(Color3f(200, 0, 200));
 		scene->Add(sphere4);
 
 		scene->SetLighting(Vector3(-10, 10, -5));
-
-		Camera camera0;
-		camera0.PinHole = Point3(-800, 0, 0);
-		camera0.LensPlane = 0;
-		scene->SetCamera(camera0);
 	}
 	void * mPixels;
 	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
@@ -261,5 +256,5 @@ extern "C"
 JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_TouchEvent(JNIEnv * env, jobject obj, jfloat x, jfloat y) {
 	if(scene == NULL)
 		return;
-	scene->PokeSphere(x - width / 2.0f, y - height / 2.0f);
+	scene->PokeSphere((float) x / width - .5f, (float) y / width - .5);
 }

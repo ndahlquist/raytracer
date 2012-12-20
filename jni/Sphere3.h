@@ -10,14 +10,13 @@
 
 struct Sphere3 {
 
-	inline Sphere3(const Point3 &center, const float radius) {
-		this->center = center;
+	inline Sphere3(const float radius) {
 		this->radius = radius;
 		this->offset = Vector3(0,0,0);
 	}
-
-	inline Sphere3(const float x, const float y, const float z, const float radius) {
-		this->center = Point3(x, y, z);
+	
+	inline Sphere3(const Point3 &center, const float radius) {
+		this->center = center;
 		this->radius = radius;
 		this->offset = Vector3(0,0,0);
 	}
