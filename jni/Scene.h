@@ -48,28 +48,19 @@ public:
 		BoundingAreaHierarchy.Sort();
 	};
 
-	void PokeSphere(float x, float y) { // TODO: this reuses a lot of code: try to combine with TraceRay
-		/*Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
+	void PokeSphere(float x, float y) {
+		Point3 samplePoint = Point3(mCamera.LensPlane, x/2.0f, y/2.0f);
 		Ray3 ray = Ray3(mCamera.PinHole, samplePoint);
 		ray.vector.Normalize();
-		float dist = FLT_MAX;
-		int visibleSphere = -1;
-		for(int i=0; i < elements.size(); i++) {
-			float this_dist = elements[i].AcceleratedIntersectionTest(ray); // TODO: implement b-search over accel structure.
-			if(this_dist >= 0 && this_dist < dist) {
-				dist = this_dist;
-				visibleSphere = i;
-			}
-		}
+		float dist;
+		Sphere3 * thisSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
 
-		if(visibleSphere == -1)
+		if(thisSphere == NULL)
 			return;
-
-		Sphere3 * thisSphere = & elements[visibleSphere];
 
 		Vector3 Normal = ray.extend(dist) - thisSphere->center;
 		Normal.Normalize();
-		thisSphere->applyForce(-5.0f*Normal);*/
+		thisSphere->applyForce(-4.0f*Normal);
 	}
 
 	Color3f TraceRay(int x, int y, bool & doesIntersect) {
@@ -82,24 +73,16 @@ public:
 
 	Color3f TraceRay(Ray3 ray, int recursion, bool & doesIntersect) {
 
-		float dist = FLT_MAX;
-		Sphere3 * visibleSphere = NULL;
-		
-		if(ray.endpoint == mCamera.PinHole) { // Viewing rays
-			std::vector<Sphere3 *> candidates = BoundingAreaHierarchy.IntersectionCandidates(ray);
-			if(candidates.size()==0)
-				return Color3f(0,200,0);
-			//if(candidates.size()==1)
-			//	return Color3f(0,0,200);
-				
-			for(int i=0; i < candidates.size(); i++) {
-				float this_dist = candidates[i]->IntersectionTest(ray);
-				if(this_dist >= 0 && this_dist < dist) {
-					dist = this_dist;
-					visibleSphere = candidates[i];
-				}
+		float dist;
+		Sphere3 * visibleSphere;
+		if(ray.endpoint == mCamera.PinHole) {// Viewing rays
+			visibleSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
+			if(visibleSphere == NULL) {
+				doesIntersect = false;
+				return Color3f(0,0,0);
 			}
-		} /*else for(int i=0; i < elements.size(); i++) {
+		} //else {// reflection rays
+		/*else for(int i=0; i < elements.size(); i++) {
 			float this_dist = elements[i].IntersectionTest(ray);
 			if(this_dist >= 0 && this_dist < dist) {
 				dist = this_dist;
@@ -107,19 +90,19 @@ public:
 			}
 		}*/
 
-		if(visibleSphere == NULL) {
-			if(recursion == NUM_RECURSIVE_REFLECTIONS) {
-				doesIntersect = false;
-				return Color3f(0,0,0);
-			}
-			return lightProbe.SampleLightProbe(ray.vector);
-		}
+		//if(visibleSphere == NULL) {
+		//	if(recursion == NUM_RECURSIVE_REFLECTIONS) {
+		//		doesIntersect = false;
+		//		return Color3f(0,0,0);
+		//	}
+		//	return lightProbe.SampleLightProbe(ray.vector);
+		//}
 
 		// Ambient / emissive
 		Color3f sum = Color3f(visibleSphere->colorAmbient);
-
+		return sum;
 		// Diffuse
-		Color3f mat = Color3f(visibleSphere->colorDiffuse);
+		/*Color3f mat = Color3f(visibleSphere->colorDiffuse);
 		for(int i=0; i < lights.size(); i++) {
 			float diffuseMultiplier = visibleSphere->DiffuseIllumination(ray.extend(dist), lights[i]);
 			Color3f light = lights[i].color;
@@ -139,7 +122,7 @@ public:
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion, doesIntersect);
 		sum += mat * reflectedColor;
 
-		return sum;
+		return sum;*/
 	}
 
 	struct lightProbe {

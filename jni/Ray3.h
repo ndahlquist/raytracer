@@ -6,16 +6,18 @@
 #include "Vector3.h"
 #include "Point3.h"
 
-struct Ray3
-{
-    //
-    // Initalization
-    //
-    //inline Ray3();
-    //inline Ray3(const Ray3& v);
-   // inline explicit Ray3(const Point3& p);
-   // inline Ray3(float x, float y, float z);
-    //inline Ray3(float s);
+struct Ray3 {
+     //
+     // Initalization
+     //
+     //inline Ray3();
+     inline Ray3(const Vector3& v){
+		this->endpoint = Point3(0,0,0);
+		this->vector = v;
+     }
+     // inline explicit Ray3(const Point3& p);
+     // inline Ray3(float x, float y, float z);
+     //inline Ray3(float s);
 	inline Ray3(const Point3& origin, const Point3& endpoint) {
 		this->endpoint = origin;
 		this->vector = endpoint - origin;

@@ -6,196 +6,130 @@
 #include <algorithm> // sort
 
 class BAH {
+
+public:
+	BAH() {}
+	
+	inline void Initialize(const Point3 eye) {
+		this->eye = eye;
+		min_z_spheres.clear();
+		max_z_spheres.clear();
+	}
+	
+	inline void Index(Sphere3 * s) {
+		Vector3 toCenter = s->center - eye;
+		float distToTangent = sqrt(toCenter.LengthSq() - s->radius);
+		toCenter.Normalize();
+		float sinOfAngle = s->radius / distToTangent;
+		float cosOfAngle = 1 - pow(s->radius / distToTangent, 2);
+
+		// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,1,0)
+		Vector3 perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,1,0)));
+		perpendicular.Normalize();
+		
+		struct sphereBound bounds;
+		
+		Vector3 toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
+		bounds.max_y = toTangent.y;
+
+		toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
+		bounds.min_y = toTangent.y;
+
+		// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,0,1)
+		perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,0,1)));
+		perpendicular.Normalize();
+
+		toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
+		bounds.max_z = toTangent.z;
+
+		toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
+		bounds.min_z = toTangent.z;
+		
+		bounds.sphere = s;
+		min_z_spheres.push_back(bounds);
+	}
+	
+	inline void Sort() {
+		
+		max_z_spheres = min_z_spheres;
+		
+		for(int i=0; i<min_z_spheres.size(); i++)
+			min_z_spheres[i].direction=2;
+		for(int i=0; i<max_z_spheres.size(); i++)
+			max_z_spheres[i].direction=3;
+	
+		struct sphereBound cmp;
+		std::sort(min_z_spheres.begin(), min_z_spheres.end(), cmp);
+		std::sort(max_z_spheres.begin(), max_z_spheres.end(), cmp);
+		
+		median_z = (min_z_spheres[min_z_spheres.size() / 2].min_z + max_z_spheres[max_z_spheres.size() / 2].max_z) / 2.0f;
+	}
+	
+	inline Sphere3 * AcceleratedIntersection(const Ray3 & r, float & intersectDist) {
+		intersectDist = INFINITY;
+		Sphere3 * visibleSphere = NULL;
+		
+		if(r.vector.z < median_z) {
+			for(int i=0; i<min_z_spheres.size(); i++) {
+				if(r.vector.z < min_z_spheres[i].min_z)
+					break;
+				if(r.vector.z > min_z_spheres[i].max_z)
+					continue;
+				if(r.vector.y < min_z_spheres[i].min_y)
+					continue;
+				if(r.vector.y > min_z_spheres[i].max_y)
+					continue;
+				float this_dist = min_z_spheres[i].sphere->IntersectionTest(r);
+				if(this_dist >= 0 && this_dist < intersectDist) {
+					intersectDist = this_dist;
+					visibleSphere = min_z_spheres[i].sphere;
+				}
+			}
+		} else {
+			for(int i=max_z_spheres.size()-1; i>=0; i--) {
+				if(r.vector.z > max_z_spheres[i].max_z)
+					break;
+				if(r.vector.z < max_z_spheres[i].min_z)
+					continue;
+				if(r.vector.y < max_z_spheres[i].min_y)
+					continue;
+				if(r.vector.y > max_z_spheres[i].max_y)
+					continue;
+				float this_dist = max_z_spheres[i].sphere->IntersectionTest(r);
+				if(this_dist >= 0 && this_dist < intersectDist) {
+					intersectDist = this_dist;
+					visibleSphere = max_z_spheres[i].sphere;
+				}
+			}
+		}
+		
+		return visibleSphere;
+	}
+
 private:
 
 	struct sphereBound {
-		float bound;
-		int sphereIndexMask;
+		Sphere3 * sphere;
+		float min_y;
+		float max_y;
+		float min_z;
+		float max_z;
+		char direction;
 		bool operator() (const sphereBound &c1, const sphereBound &c2) {
-			return (c1.bound < c2.bound);
+			if(c1.direction==0) // TODO: this is super hacky
+				return (c1.min_y < c2.min_y);
+			if(c1.direction==1)
+				return (c1.max_y < c2.max_y);
+			if(c1.direction==2)
+				return (c1.min_z < c2.min_z);
+			else // direction==3
+				return (c1.max_z < c2.max_z);
 		}
 	};
-
-public:
-
-	BAH() {}
-	
-	// Initialization functions (called once per frame)
-	void Initialize(const Point3 eye) {
-		this->eye = eye;
-		spheres.clear();
-		miny.clear();
-		maxy.clear();
-		minz.clear();
-		maxz.clear();
-	}
-	
-	void Index(Sphere3 * s) {
-		spheres.push_back(s);
-	}
-	
-	void Sort() {
-		for(int i=0; i<spheres.size(); i++) {
-			Sphere3 * s = spheres[i];
-			Vector3 toCenter = s->center - eye;
-			float distToTangent = sqrt(toCenter.LengthSq() - s->radius);
-			toCenter.Normalize();
-			float sinOfAngle = s->radius / distToTangent;
-			float cosOfAngle = 1 - pow(s->radius / distToTangent, 2);
-
-			// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,1,0)
-			Vector3 perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,1,0))); // TODO: simplify this.
-			perpendicular.Normalize();
-		
-			Vector3 toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
-			struct sphereBound thisminy;
-			thisminy.sphereIndexMask = 1 << i;
-			thisminy.bound = toTangent.y;
-			miny.push_back(thisminy);
-			
-			toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
-			struct sphereBound thismaxy;
-			thismaxy.sphereIndexMask = 1 << i;
-			thismaxy.bound = toTangent.y;
-			maxy.push_back(thismaxy);
-
-			// Find the line perpendicular to toCenter, in the plane that also contains Vector3(0,0,1)
-			perpendicular = Vector3::Cross(toCenter, Vector3::Cross(toCenter, Vector3(0,0,1))); // TODO: simplify this.
-			perpendicular.Normalize();
-
-			toTangent = toCenter * cosOfAngle - perpendicular * sinOfAngle;
-			struct sphereBound thisminz;
-			thisminz.sphereIndexMask = 1 << i;
-			thisminz.bound = toTangent.z;
-			minz.push_back(thisminz);
-
-			toTangent = toCenter * cosOfAngle + perpendicular * sinOfAngle;
-			struct sphereBound thismaxz;
-			thismaxz.sphereIndexMask = 1 << i;
-			thismaxz.bound = toTangent.z;
-			maxz.push_back(thismaxz);
-		}
-		
-		struct sphereBound cmp;
-		
-		std::sort(miny.begin(), miny.end(), cmp);
-		VectorMaskCascade(miny);
-		std::sort(maxy.begin(), maxy.end(), cmp);
-		VectorMaskCascade(maxy);
-		std::sort(minz.begin(), minz.end(), cmp);
-		std::sort(maxz.begin(), maxz.end(), cmp);
-		
-		
-	}
-	
-	void VectorMaskCascade(std::vector<sphereBound> & v) {
-		int sphereSet = 0;
-		for(int i=0; i<v.size(); i++) {
-			sphereSet |= v[i].sphereIndexMask;
-			v[i].sphereIndexMask = sphereSet;
-		}
-	}
-	
-	// Called once per viewing ray.
-	std::vector<Sphere3 *> IntersectionCandidates(Ray3 r) {
-		std::vector<Sphere3 *> candidates;
-		
-		// TODO: cache y or z preference
-		int candidateSet = getYCandidates(r);
-		if(candidateSet == 0)
-			return candidates;
-
-		candidateSet &= getZCandidates(r);
-		if(candidateSet == 0)
-			return candidates;
-
-		for(int i=0; i<spheres.size(); i++) {
-			int mask = 1 << i;
-			if((candidateSet & mask) != 0)
-				candidates.push_back(spheres[i]);
-		}
-
-		return candidates;
-	}
-
-private:
-
-	// Returns a set representation of the spheres inside y bounds.
-	int getYCandidates(Ray3 ray) {
-		//int low = 0, high = miny.size()-1;
-		//int mid = (low+high+1)/2, prev = -1;
-		/*while(mid != prev) {
-			prev = mid;
-			if(ray.vector.y > miny[mid].bound)
-				low = mid;
-			else
-				high = mid;
-			mid = (low+high+1)/2;
-		}
-		
-		int minCandidates = miny[low].sphereIndexMask;
-		return minCandidates;*/
-		int mid = miny.size()-1;
-		while(miny[mid].bound > ray.vector.y) {
-			mid--;
-			if(mid <= 0)
-				break;
-		}
-		return miny[mid].sphereIndexMask;
-		
-		/*mid = 0;
-		while(maxy[mid].bound < ray.vector.y) {
-			mid++;
-		}
-		int maxCandidates = ~0;//maxy[mid].sphereIndexMask;
-		return (minCandidates & maxCandidates);
-		//for(int i=0; i<miny.size(); i++) {
-		//	if(ray.vector.y > miny[i].bound)
-		//		minCandidates = miny[i].sphereIndexMask;
-		//}
-		/*low = 0; high = maxy.size()-1;
-		mid = (low+high+1)/2; prev = -1; // TODO
-		while(mid != prev) {
-			prev = mid;
-			if(ray.vector.y < maxy[mid].bound)
-				low = mid;
-			else
-				high = mid;
-			mid = (low+high+1)/2;
-		}
-		
-		int maxCandidates = maxy[low].sphereIndexMask;
-		/*for(int i=0; i<maxy.size(); i++) {
-			if(ray.vector.y < maxy[i].bound)
-				maxCandidates |= maxy[i].sphereIndexMask;
-		}*/
-		//return maxCandidates;
-		
-		//return (minCandidates & maxCandidates);
-	}
-
-	// Returns a set representation of the spheres inside z bounds.
-	int getZCandidates(Ray3 ray) {
-		int mincandidates = 0;
-		for(int i=0; i<minz.size(); i++) {
-			if(ray.vector.z > minz[i].bound)
-				mincandidates |= minz[i].sphereIndexMask;
-		}
-		int maxcandidates = 0;
-		for(int i=0; i<maxz.size(); i++) {
-			if(ray.vector.z < maxz[i].bound)
-				maxcandidates |= maxz[i].sphereIndexMask;
-		}
-		
-		return (mincandidates & maxcandidates);
-	}
-
+	std::vector<sphereBound> min_z_spheres;
+	std::vector<sphereBound> max_z_spheres;
+	float median_z;
 	Point3 eye;
-	std::vector<Sphere3 *> spheres;
-	std::vector<sphereBound> miny;
-	std::vector<sphereBound> maxy;
-	std::vector<sphereBound> minz;
-	std::vector<sphereBound> maxz;
 };
 
 #endif  // __BAH_H__
