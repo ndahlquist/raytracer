@@ -46,6 +46,12 @@ public:
 			BoundingAreaHierarchy.Index(& elements[i]);
 		}
 		BoundingAreaHierarchy.Sort();
+
+		BoundingVolumeHierarchy.Initialize();
+		for(int i=0; i < elements.size(); i++) {
+			BoundingVolumeHierarchy.Index(& elements[i]);
+		}
+		BoundingVolumeHierarchy.Sort();
 	};
 
 	void PokeSphere(float x, float y) {
@@ -75,34 +81,23 @@ public:
 
 		float dist;
 		Sphere3 * visibleSphere;
-		if(ray.endpoint == mCamera.PinHole) {// Viewing rays
+		if(ray.endpoint == mCamera.PinHole) { // Viewing rays
 			visibleSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
 			if(visibleSphere == NULL) {
 				doesIntersect = false;
 				return Color3f(0,0,0);
 			}
-		} //else {// reflection rays
-		/*else for(int i=0; i < elements.size(); i++) {
-			float this_dist = elements[i].IntersectionTest(ray);
-			if(this_dist >= 0 && this_dist < dist) {
-				dist = this_dist;
-				visibleSphere = & elements[i];
-			}
-		}*/
-
-		//if(visibleSphere == NULL) {
-		//	if(recursion == NUM_RECURSIVE_REFLECTIONS) {
-		//		doesIntersect = false;
-		//		return Color3f(0,0,0);
-		//	}
-		//	return lightProbe.SampleLightProbe(ray.vector);
-		//}
+		} else { // reflection rays
+			visibleSphere = BoundingVolumeHierarchy.AcceleratedIntersection(ray, dist);
+			if(visibleSphere == NULL)
+				return lightProbe.SampleLightProbe(ray.vector);
+		}
 
 		// Ambient / emissive
 		Color3f sum = Color3f(visibleSphere->colorAmbient);
-		return sum;
+
 		// Diffuse
-		/*Color3f mat = Color3f(visibleSphere->colorDiffuse);
+		Color3f mat = Color3f(visibleSphere->colorDiffuse);
 		for(int i=0; i < lights.size(); i++) {
 			float diffuseMultiplier = visibleSphere->DiffuseIllumination(ray.extend(dist), lights[i]);
 			Color3f light = lights[i].color;
@@ -122,7 +117,7 @@ public:
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion, doesIntersect);
 		sum += mat * reflectedColor;
 
-		return sum;*/
+		return sum;
 	}
 
 	struct lightProbe {
@@ -150,6 +145,7 @@ private:
 	Camera mCamera;
 	
 	BAH BoundingAreaHierarchy;
+	BVH BoundingVolumeHierarchy;
 	
 };
 

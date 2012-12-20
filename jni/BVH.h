@@ -7,19 +7,27 @@
 class BVH {
 
 public:
-	BVH() {};
+	BVH() {}
 	
-	void Index(Sphere3 * sphere) {
+	inline void Initialize() {}
+	
+	inline void Index(Sphere3 * sphere) {
 		spheres.push_back(sphere);
 	}
 	
-	std::vector<Sphere3 *> IntersectionCandidates(Ray3 r) {
-		std::vector<Sphere3 *> candidates;
+	inline void Sort() {}
+	
+	inline Sphere3 * AcceleratedIntersection(const Ray3 & r, float & intersectDist) {
+		intersectDist = INFINITY;
+		Sphere3 * visibleSphere = NULL;
 		for(int i=0; i<spheres.size(); i++) {
-			if(RaySlabIntersection(r, * spheres[i]))
-				candidates.push_back(spheres[i]);
+			float this_dist = spheres[i]->IntersectionTest(r);
+			if(this_dist >= 0 && this_dist < intersectDist) {
+				intersectDist = this_dist;
+				visibleSphere = spheres[i];
+			}
 		}
-		return candidates;
+		return visibleSphere;
 	}
 
 private:
@@ -27,7 +35,7 @@ private:
 	
 	
 	// Adapted from tavianator.com/2011/05/fast-branchless-raybounding-box-intersections/
-	bool RaySlabIntersection(Ray3 r, Sphere3 s) {
+	/*bool RaySlabIntersection(Ray3 r, Sphere3 s) {
 		float tmin = -INFINITY, tmax = INFINITY;
 		if(r.vector.x != 0.0) {
     			float tx1 = (s.center.x - s.radius - r.endpoint.x)/r.vector.x;
@@ -47,7 +55,7 @@ private:
 		if(tmax < tmin)
   			return false;
 		return true;
-	}
+	}*/
 
 	std::vector<Sphere3 *> spheres;
 };
