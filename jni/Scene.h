@@ -10,11 +10,10 @@
 #include "BAH.h"
 #include "BVH.h"
 #include "Ray3.h"
-#include "Light.h"
 
-#define NUM_RECURSIVE_REFLECTIONS 0 //4 TODO 
+#define NUM_RECURSIVE_REFLECTIONS 0 //3 TODO 
 
-struct Camera {
+struct Camera { // TODO
 	Point3 PinHole;
 	float LensPlane; // TODO: Generalize this to a ray
 };
@@ -32,11 +31,12 @@ public:
 		return & elements[index];
 	}
 
-	void Add(PointLight light) {
-		lights.push_back(light);
+	void SetLighting(Vector3 lightDirection) {
+		lightDirection.Normalize();
+		this->lightDirection=lightDirection;
 	}
 
-	void Add(Camera camera) {
+	void SetCamera(Camera camera) {
 		mCamera = camera;
 	}
 
@@ -94,15 +94,12 @@ public:
 		}
 
 		// Ambient / emissive
-		Color3f sum = Color3f(visibleSphere->colorAmbient);
+		//Color3f sum = Color3f(visibleSphere->colorAmbient);
+		Color3f sum = Color3f(0,0,0);
 
 		// Diffuse
 		Color3f mat = Color3f(visibleSphere->colorDiffuse);
-		for(int i=0; i < lights.size(); i++) {
-			float diffuseMultiplier = visibleSphere->DiffuseIllumination(ray.extend(dist), lights[i]);
-			Color3f light = lights[i].color;
-			sum += diffuseMultiplier * light * mat;
-		}
+		sum += mat * visibleSphere->DiffuseIllumination(ray.extend(dist), lightDirection);
 
 		if(recursion <= 0)
 			return sum;
@@ -140,13 +137,14 @@ public:
 	} lightProbe;
 
 private:
+
 	std::vector<Sphere3> elements;
-	std::vector<PointLight> lights;
 	Camera mCamera;
-	
+	Vector3 lightDirection;
+
 	BAH BoundingAreaHierarchy;
 	BVH BoundingVolumeHierarchy;
-	
+
 };
 
 #endif  // __SCENE_H__

@@ -7,7 +7,6 @@
 #include "Point3.h"
 #include "Vector3.h"
 #include "Ray3.h"
-#include "Light.h"
 
 struct Sphere3 {
 
@@ -58,25 +57,10 @@ struct Sphere3 {
 		return (projection - ray.endpoint).Length() - sqrt(pow(radius, 2) - distSquared);
 	}
 
-	float DiffuseIllumination(Point3 surfacePoint, PointLight pLight) {
+	float DiffuseIllumination(const Point3 surfacePoint, const Vector3 lightDirection) {
 		Vector3 normal = surfacePoint - center;
 		normal.Normalize();
-		Vector3 light = pLight.position - surfacePoint;
-		light.Normalize();
-		return std::max(Vector3::Dot(light, normal), 0.0f);
-	}
-
-	float SpecularIllumination(Point3 surfacePoint, PointLight pLight, Vector3 viewingRay) {
-		Vector3 Normal = surfacePoint - center;
-		Normal.Normalize();
-		viewingRay.Normalize();
-		Vector3 HalfwayVector = viewingRay + (surfacePoint - pLight.position);
-		HalfwayVector.Normalize();
-
-		float specular = Vector3::Dot(Normal, -HalfwayVector);
-		if(specular <= 0)
-			return 0;
-		return pow(specular, 512);
+		return std::max(Vector3::Dot(lightDirection, normal), 0.0f);
 	}
 
 	Ray3 ReflectRay(Ray3 incidentRay, float length) {
