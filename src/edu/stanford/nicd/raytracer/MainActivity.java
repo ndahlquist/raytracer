@@ -66,9 +66,9 @@ public class MainActivity extends Activity {
 	
 	@Override
     public void onResume(){
-        super.onResume();
-        raytraceThread = new RaytraceTask();
-		raytraceThread.execute(0);
+        	super.onResume();
+        	raytraceThread = new RaytraceTask();
+		raytraceThread.execute();
     }
 	
 	@Override
@@ -77,24 +77,24 @@ public class MainActivity extends Activity {
         raytraceThread.terminateThread=true;
     }
 	
-	class RaytraceTask extends AsyncTask<Integer, Void, Bitmap> {
-	    private boolean terminateThread = false;
-	    private boolean ClearStats = false;
+	class RaytraceTask extends AsyncTask<Void, Integer, Bitmap> {
+		private boolean terminateThread = false;
+	    	private boolean ClearStats = false;
 		private long startTime;
 		private long numRays;
 		private int numFrames;
 		private MotionEvent MultiTouch;
 
-	    public RaytraceTask() {
-	    	ClearStats();
-	    }
+	   	public RaytraceTask() {
+	    		ClearStats();
+	    	}
 
-	    public void ClearStats() {
-    		((TextView) findViewById(R.id.RaysPerSecond)).setText("--- x10^6 Viewing Rays/Second");
-    		((TextView) findViewById(R.id.FramesPerSecond)).setText("--- Frames/Second");
-    		ResetStats();
+	    	public void ClearStats() {
+    			((TextView) findViewById(R.id.RaysPerSecond)).setText("--- x10^6 Viewing Rays/Second");
+    			((TextView) findViewById(R.id.FramesPerSecond)).setText("--- Frames/Second");
+    			ResetStats();
 			ClearStats = false;
-	    }
+	    	}
 	    
 	    public void ResetStats() {
 			startTime = System.currentTimeMillis();
@@ -104,12 +104,12 @@ public class MainActivity extends Activity {
 
 	    // Do raytracing in background
 	    @Override
-	    protected Bitmap doInBackground(Integer... params) {
+	    protected Bitmap doInBackground(Void... params) {
 			if(mImage == null) {
 				Display display = getWindowManager().getDefaultDisplay();
 				Point size = new Point();
 				display.getSize(size);
-				mImage = Bitmap.createBitmap(size.x, size.y, Bitmap.Config.ARGB_8888);
+				mImage = Bitmap.createBitmap(size.x, size.y, Bitmap.Config.ARGB_8888); // TODO
 				mImage.setDensity(Bitmap.DENSITY_NONE);
 				mImage.setHasAlpha(false);
 			}
@@ -134,30 +134,31 @@ public class MainActivity extends Activity {
 				}
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
 				lastUpdateTime = System.currentTimeMillis();
-				numRays += RayTrace(mImage, animationSpeed * timeElapsed);
-				publishProgress();
+				int thisNumRays = RayTrace(mImage, animationSpeed * timeElapsed);
+				publishProgress(thisNumRays);
 			}
-	        return mImage;
+	        	return mImage;
 	    }
 
-	    @SuppressWarnings("deprecation")
-		@Override
-	    protected void onProgressUpdate(Void... v) {
-	        if(mImage != null) {
-	            Drawable d = new BitmapDrawable(getResources(), mImage);
-	            mLinearLayout.setBackgroundDrawable(d);
-	        }
-	        numFrames++;
-	        final float secondsElapsed = (System.currentTimeMillis() - startTime) / 1000.0f;
+		@SuppressWarnings("deprecation")
+		//@Override
+	    	protected void onProgressUpdate(Integer... progress) {
+	    		numRays += progress[0];
+	        	if(mImage != null) {
+	            	Drawable d = new BitmapDrawable(getResources(), mImage);
+	            	mLinearLayout.setBackgroundDrawable(d);
+	        	}
+	        	numFrames++;
+	        	final float secondsElapsed = (System.currentTimeMillis() - startTime) / 1000.0f;
 			if(ClearStats)
 				ClearStats();
 			else if(secondsElapsed > 1.0f) {
-	        	float RaysPerSecond = numRays / secondsElapsed;
-	        	float FramesPerSecond = numFrames / secondsElapsed;
-	        	((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond / 1000000) + "x10^6 Viewing Rays/Second");
-	        	((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
-	        	ResetStats();
-	        }
+	        		float RaysPerSecond = numRays / secondsElapsed;
+	        		float FramesPerSecond = numFrames / secondsElapsed;
+	        		((TextView) findViewById(R.id.RaysPerSecond)).setText(String.format("%.2f", RaysPerSecond / 1000000) + "x10^6 Viewing Rays/Second");
+	        		((TextView) findViewById(R.id.FramesPerSecond)).setText(String.format("%.2f", FramesPerSecond) + " Frames/Second");
+	        		ResetStats();
+	        	}
 	    }
 	}
 	
