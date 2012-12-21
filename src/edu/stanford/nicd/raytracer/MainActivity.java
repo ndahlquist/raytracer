@@ -141,13 +141,12 @@ public class MainActivity extends Activity {
 	    }
 
 		@SuppressWarnings("deprecation")
-		//@Override
 	    	protected void onProgressUpdate(Integer... progress) {
-	    		numRays += progress[0];
 	        	if(mImage != null) {
 	            	Drawable d = new BitmapDrawable(getResources(), mImage);
 	            	mLinearLayout.setBackgroundDrawable(d);
 	        	}
+	    		numRays += progress[0];
 	        	numFrames++;
 	        	final float secondsElapsed = (System.currentTimeMillis() - startTime) / 1000.0f;
 			if(ClearStats)

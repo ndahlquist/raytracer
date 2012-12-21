@@ -105,7 +105,7 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 	frame_num++;
 
 	Sphere3 * sphere0 = scene->ReturnSphere(0); // Red
-	sphere0->setPosition(Point3(900, -90, 0));
+	sphere0->setPosition(Point3(950+50*sin(frame/70), -80+40*sin(frame/70), 10*cos(frame/60)));
 
 	Sphere3 * sphere1 = scene->ReturnSphere(1); // Blue
 	sphere1->setPosition(Point3(880, 80+40*sin(frame/34.0f + 6), 100-90*sin(frame/43.0f)));
@@ -183,7 +183,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	// Initialize alpha channel to 255 (intersection flag)
 	for(int y = 0; y < height; y++) {
 		for(int x = 0; x < width; x++) {
-			* pixRef(info, mPixels, x, y) = AlphaMask(RGBtoU32(0, 0, 100), 255);
+			* pixRef(info, mPixels, x, y) = AlphaMask(RGBtoU32(0, 0, 0), 255);
 		}
 	}
 	AndroidBitmap_unlockPixels(env, mBitmap);
