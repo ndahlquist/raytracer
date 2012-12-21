@@ -28,7 +28,7 @@ struct Ray3 {
 		this->vector = vector;
 	}
 
-	inline Point3 extend(float dist) const { // TODO: rename to Extend
+	inline Point3 Extend(float dist) const {
 		Vector3 newVector = vector;
 		newVector.Normalize();
 		newVector *= dist;

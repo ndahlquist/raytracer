@@ -38,11 +38,7 @@ class Color3f {
 public:
 	float r, g, b;
 
-	Color3f() {
-		r = 0;
-		g = 0;
-		b = 0;
-	}
+	Color3f() {}
 
 	Color3f(float R, float G, float B) {
 		r = R;

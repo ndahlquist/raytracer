@@ -44,11 +44,10 @@ struct Sphere3 {
 	float IntersectionTest(Ray3 ray) {
 
 		Vector3 relativeCenter = center - ray.endpoint;
-		ray.vector.Normalize();
 		float dist = Vector3::Dot(ray.vector, relativeCenter);
 		if(dist <= 0)
 			return -1;
-		Point3 projection = ray.extend(dist);
+		Point3 projection = ray.Extend(dist);
 		float distSquared = Point3::DistSq(projection, center);
 		if(pow(radius, 2) < distSquared)
 			return -1;
@@ -64,10 +63,10 @@ struct Sphere3 {
 
 	Ray3 ReflectRay(Ray3 incidentRay, float length) {
 		incidentRay.vector.Normalize();
-		Vector3 normal = incidentRay.extend(length) - center;
+		Vector3 normal = incidentRay.Extend(length) - center;
 		normal.Normalize();
 		Vector3 reflectedVector = 2.0f * Vector3::Dot(-incidentRay.vector, normal) * normal + incidentRay.vector;
-		return Ray3(incidentRay.extend(length), reflectedVector);
+		return Ray3(incidentRay.Extend(length), reflectedVector);
 	}
 
 	// Local members:

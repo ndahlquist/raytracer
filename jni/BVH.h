@@ -9,7 +9,9 @@ class BVH {
 public:
 	BVH() {}
 	
-	inline void Initialize() {}
+	inline void Initialize() {
+		spheres.clear();	
+	}
 	
 	inline void Index(Sphere3 * sphere) {
 		spheres.push_back(sphere);
@@ -21,6 +23,8 @@ public:
 		intersectDist = INFINITY;
 		Sphere3 * visibleSphere = NULL;
 		for(int i=0; i<spheres.size(); i++) {
+			//if(!RaySlabIntersection(r, * spheres[i]))
+			//	continue;
 			float this_dist = spheres[i]->IntersectionTest(r);
 			if(this_dist >= 0 && this_dist < intersectDist) {
 				intersectDist = this_dist;
@@ -32,10 +36,8 @@ public:
 
 private:
 
-	
-	
 	// Adapted from tavianator.com/2011/05/fast-branchless-raybounding-box-intersections/
-	/*bool RaySlabIntersection(Ray3 r, Sphere3 s) {
+	/*bool RaySlabIntersection(const Ray3 & r, const Sphere3 & s) {
 		float tmin = -INFINITY, tmax = INFINITY;
 		if(r.vector.x != 0.0) {
     			float tx1 = (s.center.x - s.radius - r.endpoint.x)/r.vector.x;

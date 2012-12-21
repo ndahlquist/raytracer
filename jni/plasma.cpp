@@ -8,7 +8,7 @@
 #include <math.h>
 #include <pthread.h>
 
-#include "ColorUtils.h"
+#include "Color.h"
 #include "Point3.h"
 #include "Vector3.h"
 #include "Ray3.h"
@@ -85,11 +85,11 @@ void * workerThread(void * ptr){
 		if((frame_num+y) % interlace_lines != 0)
 			continue;
 		for(int x = 0; x < width; x++) {
-			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			bool doesIntersect;
-			uint32_t newValue = scene->TraceRay((float) x / width - .5f, (float) y / width - .5, doesIntersect).U32(); // TODO
+			Color3f newValue = scene->TraceRay((float) x / width - .5f, (float) y / width - .5, doesIntersect);
+			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			if(doesIntersect)
-				* oldValue = AlphaMask(newValue, 255);
+				* oldValue = AlphaMask(newValue.U32(), 255);
 			else if(* oldValue >> 24 != 0) // If the background is not already drawn, draw background.
 				* oldValue = AlphaMask(background.SampleBackground((float) x/width,(float) y/height).U32(), 0);
 			num_rays++;
@@ -156,23 +156,23 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		scene = new Scene();
 
 		Sphere3 sphere0 = Sphere3(100);
-		sphere0.SetMaterial(Color3f(200, 0, 0));
+		sphere0.SetMaterial(Color3f(180, 0, 0));
 		scene->Add(sphere0);
 
 		Sphere3 sphere1 = Sphere3(50);
-		sphere1.SetMaterial(Color3f(0, 200, 0));
+		sphere1.SetMaterial(Color3f(0, 120, 0));
 		scene->Add(sphere1);
 
 		Sphere3 sphere2 = Sphere3(40);
-		sphere2.SetMaterial(Color3f(0, 0, 255));
+		sphere2.SetMaterial(Color3f(0, 0, 250));
 		scene->Add(sphere2);
 
 		Sphere3 sphere3 = Sphere3(30);
-		sphere3.SetMaterial(Color3f(200, 200, 0));
+		sphere3.SetMaterial(Color3f(130, 130, 0));
 		scene->Add(sphere3);
 
 		Sphere3 sphere4 = Sphere3(15);
-		sphere4.SetMaterial(Color3f(200, 0, 200));
+		sphere4.SetMaterial(Color3f(150, 0, 150));
 		scene->Add(sphere4);
 
 		scene->SetLighting(Vector3(-10, 10, -5));

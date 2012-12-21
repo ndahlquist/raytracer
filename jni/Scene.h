@@ -4,15 +4,14 @@
 #include <math.h> // We will need some math.
 #include <vector>
 
-#include "ColorUtils.h"
-
+#include "Color.h"
 #include "Sphere3.h"
 #include "BAH.h"
 #include "BVH.h"
 #include "Ray3.h"
 
-#define NUM_RECURSIVE_REFLECTIONS 0 //3 TODO
-#define FOCAL_LENGTH 2.6f
+#define NUM_RECURSIVE_REFLECTIONS 2
+#define FOCAL_LENGTH 2.2f
 
 class Scene {
 public:
@@ -55,7 +54,7 @@ public:
 		if(thisSphere == NULL)
 			return;
 
-		Vector3 Normal = ray.extend(dist) - thisSphere->center;
+		Vector3 Normal = ray.Extend(dist) - thisSphere->center;
 		Normal.Normalize();
 		thisSphere->applyForce(-4.0f*Normal);
 	}
@@ -64,19 +63,18 @@ public:
 		doesIntersect = true;
 		Ray3 ray = Ray3(Vector3(FOCAL_LENGTH, x, y));
 		ray.vector.Normalize();
-		return TraceRay(ray, NUM_RECURSIVE_REFLECTIONS, doesIntersect);
+		return TraceRay(ray, 0, doesIntersect);
 	}
 
 	Color3f TraceRay(Ray3 ray, int recursion, bool & doesIntersect) {
 
 		float dist;
 		Sphere3 * visibleSphere;
-		if(ray.endpoint == Point3(0,0,0)) { // Viewing rays // TODO
-			//visibleSphere = BoundingVolumeHierarchy.AcceleratedIntersection(ray, dist);
+		if(recursion == 0) { // Viewing rays
 			visibleSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
 			if(visibleSphere == NULL) {
 				doesIntersect = false;
-				return Color3f(0,0,0);
+				return Color3f();
 			}
 		} else { // reflection rays
 			visibleSphere = BoundingVolumeHierarchy.AcceleratedIntersection(ray, dist);
@@ -85,25 +83,32 @@ public:
 		}
 
 		// Ambient / emissive
-		//Color3f sum = Color3f(visibleSphere->colorAmbient);
-		Color3f sum = Color3f(0,0,0);
+		//Color3f sum = visibleSphere->colorAmbient;
 
 		// Diffuse
-		Color3f mat = Color3f(visibleSphere->colorDiffuse);
-		sum += mat * visibleSphere->DiffuseIllumination(ray.extend(dist), lightDirection);
+		Color3f mat = visibleSphere->colorDiffuse;
+		//sum += mat * visibleSphere->DiffuseIllumination(ray.extend(dist), lightDirection);
+		Color3f sum = mat * visibleSphere->DiffuseIllumination(ray.Extend(dist), lightDirection);
 
-		if(recursion <= 0)
-			return sum;
-		recursion--;
-
-		if(visibleSphere->colorSpecular == Color3f(0, 0, 0))
-			return sum;
+		//if(visibleSphere->colorSpecular == Color3f(0, 0, 0))
+		//	return sum;
 
 		// Reflective
-		mat = visibleSphere->colorSpecular;
+		if(recursion >= NUM_RECURSIVE_REFLECTIONS) {
+			//mat = visibleSphere->colorSpecular;
+			Ray3 reflectRay = visibleSphere->ReflectRay(ray, dist);
+			Color3f reflectedColor = lightProbe.SampleLightProbe(reflectRay.vector);
+			//sum += mat * reflectedColor;
+			sum += reflectedColor;
+			return sum;
+		}
+		recursion++;
+
+		///mat = visibleSphere->colorSpecular;
 		Ray3 reflectedRay = visibleSphere->ReflectRay(ray, dist);
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion, doesIntersect);
-		sum += mat * reflectedColor;
+		//sum += mat * reflectedColor;
+		sum += reflectedColor;
 
 		return sum;
 	}
@@ -112,17 +117,19 @@ public:
 		void * pixels;
 		AndroidBitmapInfo info;
 
-		Color3f SampleLightProbe(Vector3 vec) {
-			vec.Normalize();
-			float x = vec.y/4.0f+.5f;
+		// vec must be normalized
+		inline Color3f SampleLightProbe(const Vector3 & vec) {
+			float x = vec.y/4.0f+.5f; // TODO: do proper sphere mapping
 			float y = vec.z/4.0f+.5f;
-			return SampleBitmap(info.width*x, info.height*y)*1.2f;
+			return SampleBitmap(info.width*x, info.height*y);
 		}
 
 	private:
-		Color3f SampleBitmap(int x, int y) {
+		inline Color3f SampleBitmap(const int x, const int y) {
+#ifdef BOUNDS_CHECK
 			if(x >= info.width || x < 0|| y >= info.height || y < 0)
 				return 0;
+#endif
 			return Color3f(* pixRef(info, pixels, x, y));
 		}
 	} lightProbe;
