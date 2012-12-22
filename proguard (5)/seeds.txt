@@ -1,0 +1,22 @@
+edu.stanford.nicd.raytracer.MainActivity
+edu.stanford.nicd.raytracer.MainActivity: MainActivity()
+edu.stanford.nicd.raytracer.MainActivity: void Initialize(android.graphics.Bitmap)
+edu.stanford.nicd.raytracer.MainActivity: void PassLightProbe(android.graphics.Bitmap)
+edu.stanford.nicd.raytracer.MainActivity: void PassBackground(android.graphics.Bitmap)
+edu.stanford.nicd.raytracer.MainActivity: int RayTrace(android.graphics.Bitmap,long)
+edu.stanford.nicd.raytracer.MainActivity: void ToggleAdaptiveSampling(boolean)
+edu.stanford.nicd.raytracer.MainActivity: void SetInterlacing(int)
+edu.stanford.nicd.raytracer.MainActivity: void TouchEvent(float,float)
+edu.stanford.nicd.raytracer.R$array: int interlace_options
+edu.stanford.nicd.raytracer.R$drawable: int background
+edu.stanford.nicd.raytracer.R$drawable: int launch_icon
+edu.stanford.nicd.raytracer.R$drawable: int light_probe
+edu.stanford.nicd.raytracer.R$id: int FramesPerSecond
+edu.stanford.nicd.raytracer.R$id: int RaysPerSecond
+edu.stanford.nicd.raytracer.R$id: int background
+edu.stanford.nicd.raytracer.R$id: int seekBarSpeed
+edu.stanford.nicd.raytracer.R$id: int spinnerInterlacing
+edu.stanford.nicd.raytracer.R$id: int switchSampling
+edu.stanford.nicd.raytracer.R$layout: int main
+edu.stanford.nicd.raytracer.R$string: int adaptive_sampling
+edu.stanford.nicd.raytracer.R$string: int app_name

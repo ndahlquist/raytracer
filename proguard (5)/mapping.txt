@@ -1,0 +1,65 @@
+edu.stanford.nicd.raytracer.MainActivity -> edu.stanford.nicd.raytracer.MainActivity:
+    android.graphics.Bitmap mImage -> b
+    android.graphics.Bitmap mLightProbe -> c
+    android.graphics.Bitmap mBackground -> d
+    android.widget.LinearLayout mLinearLayout -> e
+    edu.stanford.nicd.raytracer.MainActivity$RaytraceTask raytraceThread -> f
+    int animationSpeed -> a
+    void onCreate(android.os.Bundle) -> onCreate
+    void onResume() -> onResume
+    void onPause() -> onPause
+    void Initialize(android.graphics.Bitmap) -> Initialize
+    void PassLightProbe(android.graphics.Bitmap) -> PassLightProbe
+    void PassBackground(android.graphics.Bitmap) -> PassBackground
+    int RayTrace(android.graphics.Bitmap,long) -> RayTrace
+    void ToggleAdaptiveSampling(boolean) -> ToggleAdaptiveSampling
+    void SetInterlacing(int) -> SetInterlacing
+    void TouchEvent(float,float) -> TouchEvent
+    android.graphics.Bitmap access$0(edu.stanford.nicd.raytracer.MainActivity) -> a
+    void access$1(edu.stanford.nicd.raytracer.MainActivity,android.graphics.Bitmap) -> a
+    void access$2(android.graphics.Bitmap) -> a
+    android.graphics.Bitmap access$3(edu.stanford.nicd.raytracer.MainActivity) -> b
+    void access$4(edu.stanford.nicd.raytracer.MainActivity,android.graphics.Bitmap) -> b
+    void access$5(android.graphics.Bitmap) -> b
+    android.graphics.Bitmap access$6(edu.stanford.nicd.raytracer.MainActivity) -> c
+    void access$7(edu.stanford.nicd.raytracer.MainActivity,android.graphics.Bitmap) -> c
+    void access$8(android.graphics.Bitmap) -> c
+    void access$9(float,float) -> a
+    int access$10(android.graphics.Bitmap,long) -> a
+    android.widget.LinearLayout access$11(edu.stanford.nicd.raytracer.MainActivity) -> d
+    edu.stanford.nicd.raytracer.MainActivity$RaytraceTask access$12(edu.stanford.nicd.raytracer.MainActivity) -> e
+    void access$13(boolean) -> a
+    void access$14(int) -> a
+edu.stanford.nicd.raytracer.MainActivity$1 -> edu.stanford.nicd.raytracer.a:
+    edu.stanford.nicd.raytracer.MainActivity this$0 -> a
+    boolean onTouch(android.view.View,android.view.MotionEvent) -> onTouch
+edu.stanford.nicd.raytracer.MainActivity$2 -> edu.stanford.nicd.raytracer.b:
+    edu.stanford.nicd.raytracer.MainActivity this$0 -> a
+    void onCheckedChanged(android.widget.CompoundButton,boolean) -> onCheckedChanged
+edu.stanford.nicd.raytracer.MainActivity$3 -> edu.stanford.nicd.raytracer.c:
+    edu.stanford.nicd.raytracer.MainActivity this$0 -> a
+    void onNothingSelected(android.widget.AdapterView) -> onNothingSelected
+    void onItemSelected(android.widget.AdapterView,android.view.View,int,long) -> onItemSelected
+edu.stanford.nicd.raytracer.MainActivity$4 -> edu.stanford.nicd.raytracer.d:
+    edu.stanford.nicd.raytracer.MainActivity this$0 -> a
+    void onProgressChanged(android.widget.SeekBar,int,boolean) -> onProgressChanged
+    void onStartTrackingTouch(android.widget.SeekBar) -> onStartTrackingTouch
+    void onStopTrackingTouch(android.widget.SeekBar) -> onStopTrackingTouch
+edu.stanford.nicd.raytracer.MainActivity$RaytraceTask -> edu.stanford.nicd.raytracer.e:
+    boolean terminateThread -> b
+    long startTime -> c
+    long numRays -> d
+    int numFrames -> e
+    float pointer_x -> f
+    float pointer_y -> g
+    edu.stanford.nicd.raytracer.MainActivity this$0 -> a
+    android.graphics.Bitmap doInBackground(java.lang.Integer[]) -> a
+    void onProgressUpdate(java.lang.Void[]) -> a
+    java.lang.Object doInBackground(java.lang.Object[]) -> doInBackground
+    void onProgressUpdate(java.lang.Object[]) -> onProgressUpdate
+    void access$2(edu.stanford.nicd.raytracer.MainActivity$RaytraceTask,float) -> a
+    void access$3(edu.stanford.nicd.raytracer.MainActivity$RaytraceTask,float) -> b
+    void access$4(edu.stanford.nicd.raytracer.MainActivity$RaytraceTask,long) -> a
+    void access$5(edu.stanford.nicd.raytracer.MainActivity$RaytraceTask,long) -> b
+    void access$6(edu.stanford.nicd.raytracer.MainActivity$RaytraceTask,int) -> a
+    void access$7(edu.stanford.nicd.raytracer.MainActivity$RaytraceTask,boolean) -> a
