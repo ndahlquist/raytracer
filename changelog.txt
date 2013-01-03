@@ -4,7 +4,12 @@ TODO:
 - bitmap size
 - inline
 - background stretching.
-- volume accel structure.
+- BVH
+
+Version 1.4:
+- Revamped interactions with the spheres.
+- Honeycomb support.
+- Options to turn off environment and reflections.
 
 Version 1.3:
 - Alpha-caching background.

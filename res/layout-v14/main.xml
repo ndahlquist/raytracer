@@ -5,13 +5,6 @@
     android:layout_height="match_parent"
     android:gravity="bottom|right"
     android:orientation="vertical" >
-
-    <TextView
-        android:id="@+id/RaysPerSecond"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="6dip"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
         
     <TextView
         android:id="@+id/FramesPerSecond"
@@ -20,7 +13,14 @@
         android:padding="6dip"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-     <CheckBox
+    <TextView
+        android:id="@+id/RaysPerSecond"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="6dip"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+     <Switch
         android:id="@+id/checkboxReflections"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
         android:text="@string/reflections"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <CheckBox
+    <Switch
         android:id="@+id/checkboxLightprobe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
         android:text="@string/lightprobe"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <CheckBox
+    <Switch
         android:id="@+id/checkboxInterlacing"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

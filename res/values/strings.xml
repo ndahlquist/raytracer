@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Raytracer Demo</string>
-    <string name="adaptive_sampling">Adaptive Sampling</string>
+    <string name="reflections">Reflections</string>
+    <string name="lightprobe">Environment</string>
     <string name="interlacing">Interlacing</string>
+    <string name="speed">Speed:</string>
 </resources>

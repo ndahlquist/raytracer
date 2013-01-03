@@ -29,12 +29,23 @@ static int width;
 static int height;
 
 	struct background {
+		bool invalid;
+		bool enabled;
 		void * pixels;
 		AndroidBitmapInfo info;
 
+		background() {
+			invalid = true;
+			enabled = true;
+		}	
+	
 		Color3f SampleBackground(float x, float y) {
-			return bilinearSample(info.width*x, info.height*y);
+			if(enabled)
+				return bilinearSample(info.width*x, info.height*y);
+			else
+				return Color3f(10.0f, 10.0f, 15.0f);
 		}
+		
 	private:
 		Color3f Lerp(Color3f c1, Color3f c2, float t) {
 			return Color3f((1-t)*c1.r + t*c2.r, (1-t)*c1.g + t*c2.g, (1-t)*c1.b + t*c2.b);
@@ -53,8 +64,10 @@ static int height;
 		}
 
 		Color3f SampleBitmap(int x, int y) {
-			if(x >= info.width || x < 0|| y >= info.height || y < 0) // TODO
+#ifdef BOUNDS_CHECK
+			if(x >= info.width || x < 0|| y >= info.height || y < 0)
 				return 0;
+#endif
 			return Color3f(* pixRef(info, pixels, x, y));
 		}
 	} background;
@@ -140,6 +153,17 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 	}
 }
 
+
+static void ValidateBackground(AndroidBitmapInfo & info, void * pixels) {
+	// Set alpha channel to 255 (intersection flag)
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			* pixRef(info, pixels, x, y) = AlphaMask(RGBtoU32(0, 0, 0), 255);
+		}
+	}
+	background.invalid = false;
+}
+
 /*******************************************************************************************/
 
 extern "C"
@@ -171,7 +195,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 		sphere3.SetMaterial(Color3f(130, 130, 0));
 		scene->Add(sphere3);
 
-		Sphere3 sphere4 = Sphere3(15);
+		Sphere3 sphere4 = Sphere3(25);
 		sphere4.SetMaterial(Color3f(150, 0, 150));
 		scene->Add(sphere4);
 
@@ -180,12 +204,6 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	void * mPixels;
 	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
 		LOGE("AndroidBitmap_lockPixels() failed!");
-	// Initialize alpha channel to 255 (intersection flag)
-	for(int y = 0; y < height; y++) {
-		for(int x = 0; x < width; x++) {
-			* pixRef(info, mPixels, x, y) = AlphaMask(RGBtoU32(0, 0, 0), 255);
-		}
-	}
 	AndroidBitmap_unlockPixels(env, mBitmap);
 }
 
@@ -222,6 +240,7 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_PassBackgro
 
 	background.pixels = mPixels;
 	background.info = info;
+	background.invalid = true;
 
 	AndroidBitmap_unlockPixels(env, mBitmap);
 
@@ -238,8 +257,11 @@ JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JN
 
 	if(AndroidBitmap_lockPixels(env, mBitmap, &mPixels) < 0)
 		LOGE("AndroidBitmap_lockPixels() failed!");
+		
+	if(background.invalid)
+		ValidateBackground(info, mPixels);
 
-	num_rays = 0;
+	num_rays = 0; // TODO
 	ThreadedRayTrace(info, mPixels, timeElapsed);
 	AndroidBitmap_unlockPixels(env, mBitmap);
 	return num_rays;
@@ -247,14 +269,29 @@ JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_RayTrace(JN
 }
 
 extern "C"
-JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetInterlacing(JNIEnv * env, jobject obj, jint interlacing) {
-	if(interlacing >= 1)
-		interlace_lines = interlacing;
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetInterlacingEnabled(JNIEnv * env, jobject obj, jboolean enabled) {
+	if(enabled)
+		interlace_lines = 2;
+	else
+		interlace_lines = 1;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetReflectionsEnabled(JNIEnv * env, jobject obj, jboolean enabled) {
+	if(scene)
+		scene->reflectionsEnabled = enabled;
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetLightprobeEnabled(JNIEnv * env, jobject obj, jboolean enabled) {
+	if(scene)
+		scene->lightProbeEnabled = enabled;
+	background.enabled = enabled;
+	background.invalid = true;
 }
 
 extern "C"
 JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_TouchEvent(JNIEnv * env, jobject obj, jfloat x, jfloat y) {
-	if(scene == NULL)
-		return;
-	scene->PokeSphere((float) x / width - .5f, (float) y / width - .5);
+	if(scene)
+		scene->PokeSphere((float) x / width - .5f, (float) y / width - .5);
 }

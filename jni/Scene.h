@@ -11,12 +11,18 @@
 #include "Ray3.h"
 
 #define NUM_RECURSIVE_REFLECTIONS 2
-#define FOCAL_LENGTH 2.2f
+#define FOCAL_LENGTH 2.6f
 
 class Scene {
 public:
 
-	Scene() {}
+	bool reflectionsEnabled;
+	bool lightProbeEnabled;
+	
+	Scene() {
+		reflectionsEnabled = true;
+		lightProbeEnabled = true;
+	}
 
 	void Add(Sphere3 sphere) {
 		elements.push_back(sphere);
@@ -56,7 +62,8 @@ public:
 
 		Vector3 Normal = ray.Extend(dist) - thisSphere->center;
 		Normal.Normalize();
-		thisSphere->applyForce(-4.0f*Normal);
+		Vector3 force = Normal * Vector3(-4.0f, .8f * thisSphere->radius, .8f * thisSphere->radius);
+		thisSphere->applyForce(force);
 	}
 
 	inline Color3f TraceRay(float x, float y, bool & doesIntersect) {
@@ -76,38 +83,35 @@ public:
 				doesIntersect = false;
 				return Color3f();
 			}
-		} else { // reflection rays
+		} else { // Reflection rays
 			visibleSphere = BoundingVolumeHierarchy.AcceleratedIntersection(ray, dist);
-			if(visibleSphere == NULL)
-				return lightProbe.SampleLightProbe(ray.vector);
+			if(visibleSphere == NULL) {
+				if(lightProbeEnabled)
+					return lightProbe.SampleLightProbe(ray.vector);
+				else
+					return Color3f(0.0f, 0.0f, 0.0f);
+			}
 		}
-
-		// Ambient / emissive
-		//Color3f sum = visibleSphere->colorAmbient;
-
+		
 		// Diffuse
 		Color3f mat = visibleSphere->colorDiffuse;
-		//sum += mat * visibleSphere->DiffuseIllumination(ray.extend(dist), lightDirection);
 		Color3f sum = mat * visibleSphere->DiffuseIllumination(ray.Extend(dist), lightDirection);
 
 		//if(visibleSphere->colorSpecular == Color3f(0, 0, 0))
 		//	return sum;
 
-		// Reflective
-		if(recursion >= NUM_RECURSIVE_REFLECTIONS) {
-			//mat = visibleSphere->colorSpecular;
-			Ray3 reflectRay = visibleSphere->ReflectRay(ray, dist);
-			Color3f reflectedColor = lightProbe.SampleLightProbe(reflectRay.vector);
-			//sum += mat * reflectedColor;
-			sum += reflectedColor;
+		if(!reflectionsEnabled || recursion >= NUM_RECURSIVE_REFLECTIONS) {
+			if(lightProbeEnabled){
+				Ray3 reflectRay = visibleSphere->ReflectRay(ray, dist);
+				sum += lightProbe.SampleLightProbe(reflectRay.vector);
+			}
 			return sum;
 		}
 		recursion++;
 
-		///mat = visibleSphere->colorSpecular;
+		// Reflective
 		Ray3 reflectedRay = visibleSphere->ReflectRay(ray, dist);
 		Color3f reflectedColor = this->TraceRay(reflectedRay, recursion, doesIntersect);
-		//sum += mat * reflectedColor;
 		sum += reflectedColor;
 
 		return sum;

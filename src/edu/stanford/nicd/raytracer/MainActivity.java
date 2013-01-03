@@ -10,7 +10,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -41,14 +40,29 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		Switch switchInterlacing = (Switch) findViewById(R.id.switchInterlacing);
-		switchInterlacing.setChecked(true);
-		switchInterlacing.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+		CompoundButton checkboxReflections = (CompoundButton) findViewById(R.id.checkboxReflections);
+		checkboxReflections.setChecked(true);
+		checkboxReflections.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if(isChecked)
-					SetInterlacing(2);
-				else
-					SetInterlacing(1);
+				SetReflectionsEnabled(isChecked);
+				raytraceThread.ClearStats = true;
+			}
+		});
+
+		CompoundButton checkboxLightprobe = (CompoundButton) findViewById(R.id.checkboxLightprobe);
+		checkboxLightprobe.setChecked(true);
+		checkboxLightprobe.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				SetLightprobeEnabled(isChecked);
+				raytraceThread.ClearStats = true;
+			}
+		});
+		
+		CompoundButton checkboxInterlacing = (CompoundButton) findViewById(R.id.checkboxInterlacing);
+		checkboxInterlacing.setChecked(true);
+		checkboxInterlacing.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				SetInterlacingEnabled(isChecked);
 				raytraceThread.ClearStats = true;
 			}
 		});
@@ -172,7 +186,9 @@ public class MainActivity extends Activity {
 	private static native void PassLightProbe(Bitmap lightProbe);
 	private static native void PassBackground(Bitmap background);
 	private static native int RayTrace(Bitmap output, long timeElapsed);
-	private static native void SetInterlacing(int value);
+	private static native void SetInterlacingEnabled(boolean enabled);
+	private static native void SetReflectionsEnabled(boolean enabled);
+	private static native void SetLightprobeEnabled(boolean enabled);
 	private static native void TouchEvent(float x, float y);
 
 }
