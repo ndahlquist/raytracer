@@ -10,25 +10,27 @@
 
 struct Sphere3 {
 
-	inline Sphere3(const float radius) {
+	/*inline Sphere3(const float radius) {
 		this->radius = radius;
-		this->offset = Vector3(0,0,0);
-	}
+		//center = ;
+		//followCenter = center;
+	}*/
 	
 	inline Sphere3(const Point3 &center, const float radius) {
 		this->center = center;
+		followCenter = center;
 		this->radius = radius;
-		this->offset = Vector3(0,0,0);
 	}
 
 	inline void setPosition(const Point3 & center) {
-		this->center = center + this->offset;
-		this->offset *= .98f;
+		followCenter = center;
+		this->center = Point3::Lerp(this->center, followCenter, .09f);
 	}
 
-	inline void applyForce(Vector3 force) {
-		this->offset += force;
-		this->offset /= .98f;
+	inline void offsetPosition(const Point3 & newPosition) {
+		center = newPosition;// - center;
+		//this->offset += force;
+		//this->offset /= .98f;
 	}
 
 	inline void SetMaterial(const Color3f color) {
@@ -70,8 +72,8 @@ struct Sphere3 {
 	}
 
 	// Local members:
-	Point3 center;
-	Vector3 offset;
+	Point3 center; // The physical center of the sphere
+	Point3 followCenter; // The point the sphere should follow.
 	float radius;
 	Color3f colorAmbient;
 	Color3f colorDiffuse;

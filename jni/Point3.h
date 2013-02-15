@@ -43,6 +43,13 @@ struct Point3 {
     	return pow(left.x - right.x, 2) + pow(left.y - right.y, 2) + pow(left.z - right.z, 2);
     }
 
+    static inline Point3 Lerp(const Point3& left, const Point3& right, float t) {
+    	float x = (1.0f - t) * left.x + t * right.x;
+    	float y = (1.0f - t) * left.y + t * right.y;
+    	float z = (1.0f - t) * left.z + t * right.z;
+    	return Point3(x,y,z);
+    }
+
     float x, y, z;
 };
 

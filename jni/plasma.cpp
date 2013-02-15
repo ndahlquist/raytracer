@@ -117,19 +117,19 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 	frame += timeElapsed / 3000.0f;
 	frame_num++;
 
-	Sphere3 * sphere0 = scene->ReturnSphere(0); // Red
+	Sphere3 * sphere0 = scene->SphereFromIndex(0); // Red
 	sphere0->setPosition(Point3(950+50*sin(frame/70), -80+40*sin(frame/70), 10*cos(frame/60)));
 
-	Sphere3 * sphere1 = scene->ReturnSphere(1); // Blue
+	Sphere3 * sphere1 = scene->SphereFromIndex(1); // Blue
 	sphere1->setPosition(Point3(880, 80+40*sin(frame/34.0f + 6), 100-90*sin(frame/43.0f)));
 
-	Sphere3 * sphere2 = scene->ReturnSphere(2); // Green
+	Sphere3 * sphere2 = scene->SphereFromIndex(2); // Green
 	sphere2->setPosition(Point3(880, -40+10*sin(frame/54.0f + 5), 120+40*sin(frame/30.0f)));
 
-	Sphere3 * sphere3 = scene->ReturnSphere(3); // Yellow
+	Sphere3 * sphere3 = scene->SphereFromIndex(3); // Yellow
 	sphere3->setPosition(Point3(805, 50+23*sin(frame/19.0f), 120+23*cos(frame/20.0f)));
 
-	Sphere3 * sphere4 = scene->ReturnSphere(4); // Purple
+	Sphere3 * sphere4 = scene->SphereFromIndex(4); // Purple
 	sphere4->setPosition(Point3(880+200*sin(frame/23.0f), 20+40*cos(frame/11.0f), 170+150*cos(frame/23.0f)));
 
 	scene->BuildAccelerationStructure();
@@ -179,23 +179,23 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_Initialize(
 	if(scene == NULL) {
 		scene = new Scene();
 
-		Sphere3 sphere0 = Sphere3(100);
+		Sphere3 sphere0 = Sphere3(Point3(950, -80, 10), 100);
 		sphere0.SetMaterial(Color3f(180, 0, 0));
 		scene->Add(sphere0);
 
-		Sphere3 sphere1 = Sphere3(50);
+		Sphere3 sphere1 = Sphere3(Point3(880, 80, 100), 50);
 		sphere1.SetMaterial(Color3f(0, 120, 0));
 		scene->Add(sphere1);
 
-		Sphere3 sphere2 = Sphere3(40);
+		Sphere3 sphere2 = Sphere3(Point3(880, -40, 120), 40);
 		sphere2.SetMaterial(Color3f(0, 0, 250));
 		scene->Add(sphere2);
 
-		Sphere3 sphere3 = Sphere3(30);
+		Sphere3 sphere3 = Sphere3(Point3(805, 50, 120), 30);
 		sphere3.SetMaterial(Color3f(130, 130, 0));
 		scene->Add(sphere3);
 
-		Sphere3 sphere4 = Sphere3(25);
+		Sphere3 sphere4 = Sphere3(Point3(880, 20, 170), 25);
 		sphere4.SetMaterial(Color3f(150, 0, 150));
 		scene->Add(sphere4);
 
@@ -291,7 +291,18 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_SetLightpro
 }
 
 extern "C"
-JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_TouchEvent(JNIEnv * env, jobject obj, jfloat x, jfloat y) {
-	if(scene)
-		scene->PokeSphere((float) x / width - .5f, (float) y / width - .5);
+JNIEXPORT jint JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_TraceTouch(JNIEnv * env, jobject obj, jfloat x, jfloat y) {
+	if(!scene)
+		return -1;
+	Sphere3 * sphereIndex = scene->TraceSphere((float) x / width - .5f, (float) y / width - .5);
+	return scene->IndexFromSphere(sphereIndex);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_MoveTouch(JNIEnv * env, jobject obj, jfloat x, jfloat y, jint sphereIndex) {
+	if(!scene)
+		return;
+	if(sphereIndex == -1)
+		return;
+	scene->MoveSphere((float) x / width - .5f, (float) y / width - .5, scene->SphereFromIndex(sphereIndex));
 }

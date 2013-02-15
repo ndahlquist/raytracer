@@ -1,8 +1,0 @@
-edu.stanford.nicd.raytracer.BuildConfig
-edu.stanford.nicd.raytracer.R
-edu.stanford.nicd.raytracer.R$array
-edu.stanford.nicd.raytracer.R$attr
-edu.stanford.nicd.raytracer.R$drawable
-edu.stanford.nicd.raytracer.R$id
-edu.stanford.nicd.raytracer.R$layout
-edu.stanford.nicd.raytracer.R$string

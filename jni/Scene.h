@@ -28,8 +28,16 @@ public:
 		elements.push_back(sphere);
 	}
 
-	Sphere3 * ReturnSphere(int index) {
+	Sphere3 * SphereFromIndex(int index) {
 		return & elements[index];
+	}
+
+	int IndexFromSphere(Sphere3 * sphere) {
+		for(int i=0; i < elements.size(); i++) {
+				if(& elements[i] == sphere)
+					return i;
+		}
+		return -1;
 	}
 
 	void SetLighting(Vector3 lightDirection) {
@@ -51,19 +59,22 @@ public:
 		BoundingVolumeHierarchy.Sort();
 	};
 
-	void PokeSphere(float x, float y) {
+	Sphere3 * TraceSphere(float x, float y) {
 		Ray3 ray = Ray3(Vector3(FOCAL_LENGTH, x, y));
 		ray.vector.Normalize();
 		float dist;
-		Sphere3 * thisSphere = BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
+		return BoundingAreaHierarchy.AcceleratedIntersection(ray, dist);
+	}
 
-		if(thisSphere == NULL)
-			return;
-
-		Vector3 Normal = ray.Extend(dist) - thisSphere->center;
-		Normal.Normalize();
-		Vector3 force = Normal * Vector3(-4.0f, .8f * thisSphere->radius, .8f * thisSphere->radius);
-		thisSphere->applyForce(force);
+	Sphere3 * MoveSphere(float x, float y, Sphere3 * sphere) {
+		Ray3 ray = Ray3(Vector3(FOCAL_LENGTH, x, y));
+		Point3 newPosition = ray.XPlaneIntersect(sphere->center.x);
+		sphere->offsetPosition(newPosition);
+		//ray.vector.Normalize();
+		//Vector3 Normal = ray.Extend(10.0f/*dist*/) - sphere->center;
+		//Normal.Normalize();
+		//Vector3 force = Normal * Vector3(0.0f, .8f * sphere->radius, .8f * sphere->radius);
+		//sphere->applyForce(force);
 	}
 
 	inline Color3f TraceRay(float x, float y, bool & doesIntersect) {

@@ -34,6 +34,12 @@ struct Ray3 {
 		newVector *= dist;
 		return endpoint + newVector;
 	}
+
+	Point3 XPlaneIntersect(float x) {
+		float y = endpoint.y + vector.y/vector.x * (x-endpoint.x);
+		float z = endpoint.x + vector.z/vector.x * (x-endpoint.x);
+		return Point3(x,y,z);
+	}
 	/*
     //
     // Assignment

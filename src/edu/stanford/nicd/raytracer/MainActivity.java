@@ -145,8 +145,10 @@ public class MainActivity extends Activity {
 				if(MultiTouch != null) {
 					if(MultiTouch.getAction() == MotionEvent.ACTION_UP)
 						MultiTouch = null;
-					else for(int p = 0; p < MultiTouch.getPointerCount(); p++)
-						TouchEvent(MultiTouch.getX(p), MultiTouch.getY(p));
+					else for(int p = 0; p < MultiTouch.getPointerCount(); p++) {
+						int sphereIndex = TraceTouch(MultiTouch.getX(p), MultiTouch.getY(p));
+						MoveTouch(MultiTouch.getX(p), MultiTouch.getY(p), sphereIndex);
+					}
 				}
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
 				lastUpdateTime = System.currentTimeMillis();
@@ -189,6 +191,7 @@ public class MainActivity extends Activity {
 	private static native void SetInterlacingEnabled(boolean enabled);
 	private static native void SetReflectionsEnabled(boolean enabled);
 	private static native void SetLightprobeEnabled(boolean enabled);
-	private static native void TouchEvent(float x, float y);
+	private static native int TraceTouch(float x, float y);
+	private static native void MoveTouch(float x, float y, int sphereIndex);
 
 }
