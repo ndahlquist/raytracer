@@ -134,20 +134,39 @@ public class MainActivity extends Activity {
 			numFrames = 0;
 		}
 
+		private int mActivePointerId = -1;
+		private int mSphereIndex;
+		
 		// Do ray tracing in background
 		@Override
 		protected Bitmap doInBackground(Void... params) {
+			
 			Initialize(mImage);
 			PassLightProbe(mLightProbe);
 			PassBackground(mBackground);
 			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
 				if(MultiTouch != null) {
-					if(MultiTouch.getAction() == MotionEvent.ACTION_UP)
-						MultiTouch = null;
-					else for(int p = 0; p < MultiTouch.getPointerCount(); p++) {
-						int sphereIndex = TraceTouch(MultiTouch.getX(p), MultiTouch.getY(p));
-						MoveTouch(MultiTouch.getX(p), MultiTouch.getY(p), sphereIndex);
+					int action = MultiTouch.getAction();
+					switch (action & MotionEvent.ACTION_MASK) {
+						case MotionEvent.ACTION_UP: {
+							MultiTouch = null;
+							break;
+						}
+				    	case MotionEvent.ACTION_DOWN: {
+				            mActivePointerId = MultiTouch.getPointerId(0);
+				    		final int pointerIndex = MultiTouch.findPointerIndex(mActivePointerId);
+				            final float x = MultiTouch.getX(pointerIndex);
+				            final float y = MultiTouch.getY(pointerIndex);
+				    		mSphereIndex = TraceTouch(x, y);
+				    		break;
+				    	}
+				    	case MotionEvent.ACTION_MOVE: {
+				    		final int pointerIndex = MultiTouch.findPointerIndex(mActivePointerId);
+				            final float x = MultiTouch.getX(pointerIndex);
+				            final float y = MultiTouch.getY(pointerIndex);
+						    MoveTouch(x, y, mSphereIndex);
+				    	}
 					}
 				}
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;

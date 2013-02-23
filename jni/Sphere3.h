@@ -9,12 +9,6 @@
 #include "Ray3.h"
 
 struct Sphere3 {
-
-	/*inline Sphere3(const float radius) {
-		this->radius = radius;
-		//center = ;
-		//followCenter = center;
-	}*/
 	
 	inline Sphere3(const Point3 &center, const float radius) {
 		this->center = center;
@@ -28,9 +22,7 @@ struct Sphere3 {
 	}
 
 	inline void offsetPosition(const Point3 & newPosition) {
-		center = newPosition;// - center;
-		//this->offset += force;
-		//this->offset /= .98f;
+		center = newPosition;
 	}
 
 	inline void SetMaterial(const Color3f color) {
@@ -71,9 +63,8 @@ struct Sphere3 {
 		return Ray3(incidentRay.Extend(length), reflectedVector);
 	}
 
-	// Local members:
-	Point3 center; // The physical center of the sphere
-	Point3 followCenter; // The point the sphere should follow.
+	Point3 center;       // The physical center of the sphere
+	Point3 followCenter; // The point the sphere should 'follow'.
 	float radius;
 	Color3f colorAmbient;
 	Color3f colorDiffuse;

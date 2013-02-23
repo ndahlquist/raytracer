@@ -29,6 +29,8 @@ public:
 	}
 
 	Sphere3 * SphereFromIndex(int index) {
+		if(index < 0 || index >= elements.size())
+			return NULL;
 		return & elements[index];
 	}
 

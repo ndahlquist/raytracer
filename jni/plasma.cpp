@@ -304,5 +304,8 @@ JNIEXPORT void JNICALL Java_edu_stanford_nicd_raytracer_MainActivity_MoveTouch(J
 		return;
 	if(sphereIndex == -1)
 		return;
-	scene->MoveSphere((float) x / width - .5f, (float) y / width - .5, scene->SphereFromIndex(sphereIndex));
+	Sphere3 * sphere = scene->SphereFromIndex(sphereIndex);
+	if(sphere == NULL)
+		return;
+	scene->MoveSphere((float) x / width - .5f, (float) y / width - .5, sphere);
 }
