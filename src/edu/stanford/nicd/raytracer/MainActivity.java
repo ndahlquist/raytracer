@@ -1,5 +1,9 @@
 package edu.stanford.nicd.raytracer;
 
+import java.util.ArrayList;
+
+import edu.stanford.nicd.raytracer.MainActivity.RaytraceTask.TouchTracker;
+
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -23,7 +27,7 @@ public class MainActivity extends Activity {
 	private Bitmap mBackground;
 	private LinearLayout mLinearLayout;
 	private RaytraceTask raytraceThread;
-	private MotionEvent MultiTouch;
+	//private MotionEvent MultiTouch;
 	int animationSpeed;
 
 	@Override
@@ -35,8 +39,85 @@ public class MainActivity extends Activity {
 		mLinearLayout = (LinearLayout) findViewById(R.id.background);
 		mLinearLayout.setOnTouchListener(new View.OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent ev) {
-				MultiTouch = ev;
-				return true;
+				final int action = ev.getAction();
+			    switch (action & MotionEvent.ACTION_MASK) {
+			    case MotionEvent.ACTION_DOWN: {
+			        final float x = ev.getX(0);
+			        final float y = ev.getY(0);
+			        
+			        int sphereID = TraceTouch(x, y);
+			        if(sphereID == -1)
+			        	break;
+			        
+			        TouchTracker thisTouch = raytraceThread.new TouchTracker();
+			        thisTouch.pointerID = ev.getPointerId(0);
+			        thisTouch.sphereID = sphereID;
+			        thisTouch.x = x;
+			        thisTouch.y = y;
+			        raytraceThread.touches.add(thisTouch);
+			        break;
+			    }
+			        
+			    case MotionEvent.ACTION_MOVE: {
+			    	int pointerIndex = ev.getPointerId(0);
+			    	TouchTracker touch = null;
+			    	for(int i=0; i < raytraceThread.touches.size(); i++) {
+						TouchTracker thisTouch = raytraceThread.touches.get(i);
+						if(pointerIndex == thisTouch.pointerID) {
+							touch = thisTouch;
+							break;
+						}
+					}
+			    	if(touch == null)
+			    		break;
+
+			    	touch.x = ev.getX(0);
+			    	touch.y = ev.getY(0);
+			    	
+			        break;
+			    }
+			        
+			    case MotionEvent.ACTION_UP: {
+			    	int pointerIndex = ev.getPointerId(0);
+			    	int touchID = -1;
+			    	for(int i=0; i < raytraceThread.touches.size(); i++) {
+						TouchTracker thisTouch = raytraceThread.touches.get(i);
+						if(pointerIndex == thisTouch.pointerID) {
+							touchID = i;
+							break;
+						}
+					}
+			    	if(touchID == -1)
+			    		break;
+
+			    	raytraceThread.touches.remove(touchID);
+			    	
+			        break;
+			    }
+			        
+			    case MotionEvent.ACTION_CANCEL: {
+			        /*mActivePointerId = INVALID_POINTER_ID;
+			        break;*/
+			    }
+			    
+			    case MotionEvent.ACTION_POINTER_UP: {
+			        // Extract the index of the pointer that left the touch sensor
+			        /*final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) 
+			                >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+			        final int pointerId = ev.getPointerId(pointerIndex);
+			        if (pointerId == mActivePointerId) {
+			            // This was our active pointer going up. Choose a new
+			            // active pointer and adjust accordingly.
+			            final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
+			            mLastTouchX = ev.getX(newPointerIndex);
+			            mLastTouchY = ev.getY(newPointerIndex);
+			            mActivePointerId = ev.getPointerId(newPointerIndex);
+			        }
+			        break;*/
+			    }
+			    }
+			    
+			    return true;
 			}
 		});
 
@@ -116,6 +197,14 @@ public class MainActivity extends Activity {
 		private long startTime;
 		private long numRays;
 		private int numFrames;
+		ArrayList<TouchTracker> touches = new ArrayList<TouchTracker> ();
+
+		public class TouchTracker {
+			int pointerID;
+			int sphereID;
+			float x;
+			float y;
+		}
 
 		public RaytraceTask() {
 			ClearStats();
@@ -133,9 +222,6 @@ public class MainActivity extends Activity {
 			numRays = 0;
 			numFrames = 0;
 		}
-
-		private int mActivePointerId = -1;
-		private int mSphereIndex;
 		
 		// Do ray tracing in background
 		@Override
@@ -146,28 +232,9 @@ public class MainActivity extends Activity {
 			PassBackground(mBackground);
 			long lastUpdateTime = System.currentTimeMillis();
 			while(!terminateThread) {
-				if(MultiTouch != null) {
-					int action = MultiTouch.getAction();
-					switch (action & MotionEvent.ACTION_MASK) {
-						case MotionEvent.ACTION_UP: {
-							MultiTouch = null;
-							break;
-						}
-				    	case MotionEvent.ACTION_DOWN: {
-				            mActivePointerId = MultiTouch.getPointerId(0);
-				    		final int pointerIndex = MultiTouch.findPointerIndex(mActivePointerId);
-				            final float x = MultiTouch.getX(pointerIndex);
-				            final float y = MultiTouch.getY(pointerIndex);
-				    		mSphereIndex = TraceTouch(x, y);
-				    		break;
-				    	}
-				    	case MotionEvent.ACTION_MOVE: {
-				    		final int pointerIndex = MultiTouch.findPointerIndex(mActivePointerId);
-				            final float x = MultiTouch.getX(pointerIndex);
-				            final float y = MultiTouch.getY(pointerIndex);
-						    MoveTouch(x, y, mSphereIndex);
-				    	}
-					}
+				for(int i=0; i < touches.size(); i++) {
+					TouchTracker touch = touches.get(i);
+					MoveTouch(touch.x, touch.y, touch.sphereID);
 				}
 				long timeElapsed = System.currentTimeMillis() - lastUpdateTime;
 				lastUpdateTime = System.currentTimeMillis();
