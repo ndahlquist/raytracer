@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent ev) {
 				final int action = ev.getAction() & MotionEvent.ACTION_MASK;
 			    if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-			        final float x = ev.getX(0);
+			        final float x = ev.getX(0); // TODO
 			        final float y = ev.getY(0);
 			        
 			        int sphereID = TraceTouch(x, y);
@@ -150,6 +150,8 @@ public class MainActivity extends Activity {
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
+		if(!hasFocus)
+		    return;
 		if(mLinearLayout.getWidth() == 0 || mLinearLayout.getHeight() == 0)
 			return;
 		if(mImage == null) {
@@ -164,11 +166,10 @@ public class MainActivity extends Activity {
 	public void onPause(){
 		super.onPause();
 		raytraceThread.terminateThread=true;
-		// finish(); // TODO
 	}
 
 	class RaytraceTask extends AsyncTask<Void, Integer, Bitmap> {
-		private boolean terminateThread = false;
+		public boolean terminateThread = false;
 		private boolean ClearStats = false;
 		private long startTime;
 		private long numRays;
@@ -207,7 +208,7 @@ public class MainActivity extends Activity {
 			PassLightProbe(mLightProbe);
 			PassBackground(mBackground);
 			long lastUpdateTime = System.currentTimeMillis();
-			while(!terminateThread) { // TODO
+			while(!terminateThread) {
 				for(int i=0; i < touches.size(); i++) {
 					TouchTracker touch = touches.get(i);
 					MoveTouch(touch.x, touch.y, touch.sphereID);

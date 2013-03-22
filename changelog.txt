@@ -1,5 +1,4 @@
 TODO:
-- onPause bug!!!!
 - struct color3f?
 - fix bitmap race condition
 - bitmap size
@@ -10,6 +9,7 @@ TODO:
 Version 1.5:
 - In progress: Fixed multitouch.
 - Support for devices that do not correctly render alpha.
+- Fixed bug that allowed a background thread to persist after onPause().
 
 Version 1.4:
 - Revamped interactions with the spheres.
