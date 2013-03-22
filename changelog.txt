@@ -1,4 +1,5 @@
 TODO:
+- onPause bug!!!!
 - struct color3f?
 - fix bitmap race condition
 - bitmap size
