@@ -189,6 +189,7 @@ public class MainActivity extends Activity {
 	public void onPause(){
 		super.onPause();
 		raytraceThread.terminateThread=true;
+		// finish(); // TODO
 	}
 
 	class RaytraceTask extends AsyncTask<Void, Integer, Bitmap> {

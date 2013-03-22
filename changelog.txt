@@ -6,6 +6,10 @@ TODO:
 - background stretching.
 - BVH
 
+Version 1.5:
+- In progress: Fixed multitouch.
+- Support for devices that do not correctly render alpha.
+
 Version 1.4:
 - Revamped interactions with the spheres.
 - Honeycomb support.

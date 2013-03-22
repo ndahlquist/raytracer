@@ -94,7 +94,6 @@ struct thread_args {
 void * workerThread(void * ptr){
 	struct thread_args args = * (struct thread_args *) ptr;
 	for(int y = args.threadNum; y < height; y+=NUM_THREADS) {
-	//for(int y = args.threadNum*interlace_lines+frame_num%interlace_lines; y < height; y+=NUM_THREADS*interlace_lines) {
 		if((frame_num+y) % interlace_lines != 0)
 			continue;
 		for(int x = 0; x < width; x++) {
@@ -103,8 +102,8 @@ void * workerThread(void * ptr){
 			uint32_t * oldValue = pixRef(*args.info, args.pixels, x, y);
 			if(doesIntersect)
 				* oldValue = AlphaMask(newValue.U32(), 255);
-			else if(* oldValue >> 24 != 0) // If the background is not already drawn, draw background.
-				* oldValue = AlphaMask(background.SampleBackground((float) x/width,(float) y/height).U32(), 0);
+			else if(* oldValue >> 24 != 254) // If the background is not already drawn, draw background.
+				* oldValue = AlphaMask(background.SampleBackground((float) x/width,(float) y/height).U32(), 254);
 			num_rays++;
 		}
 	}
@@ -152,7 +151,6 @@ static void ThreadedRayTrace(AndroidBitmapInfo & info, void * pixels, long timeE
 		delete args_array[i];
 	}
 }
-
 
 static void ValidateBackground(AndroidBitmapInfo & info, void * pixels) {
 	// Set alpha channel to 255 (intersection flag)
