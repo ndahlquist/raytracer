@@ -5,9 +5,10 @@ TODO:
 - inline
 - background stretching.
 - BVH
+- Menu / back button bug
 
 Version 1.5:
-- In progress: Fixed multitouch.
+- Improved multitouch.
 - Support for devices that do not correctly render alpha.
 - Fixed bug that allowed a background thread to persist after onPause().
 

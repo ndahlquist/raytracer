@@ -7,6 +7,7 @@ import edu.stanford.nicd.raytracer.MainActivity.RaytraceTask.TouchTracker;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -36,65 +37,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main);
 
 		mLinearLayout = (LinearLayout) findViewById(R.id.background);
-		mLinearLayout.setOnTouchListener(new View.OnTouchListener() {
-			public boolean onTouch(View v, MotionEvent ev) {
-				final int action = ev.getAction() & MotionEvent.ACTION_MASK;
-			    if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-			        final float x = ev.getX(0); // TODO
-			        final float y = ev.getY(0);
-			        
-			        int sphereID = TraceTouch(x, y);
-			        if(sphereID == -1)
-			        	return false;
-			        
-			        TouchTracker thisTouch = raytraceThread.new TouchTracker();
-			        thisTouch.pointerID = ev.getPointerId(0);
-			        thisTouch.sphereID = sphereID;
-			        thisTouch.x = x;
-			        thisTouch.y = y;
-			        raytraceThread.touches.add(thisTouch);
-			    }
-			        
-			    if(action == MotionEvent.ACTION_MOVE) {
-			    	int pointerIndex = ev.getPointerId(0);
-			    	TouchTracker touch = null;
-			    	for(int i=0; i < raytraceThread.touches.size(); i++) {
-						TouchTracker thisTouch = raytraceThread.touches.get(i);
-						if(pointerIndex == thisTouch.pointerID) {
-							touch = thisTouch;
-							break;
-						}
-					}
-			    	if(touch == null)
-			    		return false;
-
-			    	touch.x = ev.getX(0);
-			    	touch.y = ev.getY(0);
-			    }
-			    
-			    if(action == MotionEvent.ACTION_POINTER_UP) {
-			    	int pointerIndex = ev.getPointerId(0);
-			    	int touchID = -1;
-			    	for(int i=0; i < raytraceThread.touches.size(); i++) {
-						TouchTracker thisTouch = raytraceThread.touches.get(i);
-						if(pointerIndex == thisTouch.pointerID) {
-							touchID = i;
-							break;
-						}
-					}
-			    	if(touchID == -1)
-			    		return false;
-
-			    	raytraceThread.touches.remove(touchID);
-			    }
-			        
-			    if(action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-			        raytraceThread.touches.clear();
-			    }
-			    
-			    return true;
-			}
-		});
+		mLinearLayout.setOnTouchListener(new RaytracerTouchHandler());
 
 		CompoundButton checkboxReflections = (CompoundButton) findViewById(R.id.checkboxReflections);
 		checkboxReflections.setChecked(true);
@@ -165,23 +108,114 @@ public class MainActivity extends Activity {
 	@Override
 	public void onPause(){
 		super.onPause();
-		raytraceThread.terminateThread=true;
+		raytraceThread = null;
+	}
+	
+	class RaytracerTouchHandler implements View.OnTouchListener {
+		public boolean onTouch(View v, MotionEvent ev) {
+			final int action = ev.getActionMasked();
+		    
+		    if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
+			    final int actionIndex = ev.getActionIndex();
+			    final int pointerID = ev.getPointerId(actionIndex);
+			    final float x = ev.getX(actionIndex);
+		        final float y = ev.getY(actionIndex);
+		    	
+		    	// Query the native code to see if this touch intersects a sphere.
+		        final int sphereID = TraceTouch(x, y);
+		        if(sphereID == -1)
+		        	return false;
+		        
+		        // Add this touch to the list.
+		        TouchTracker thisTouch = raytraceThread.new TouchTracker();
+		        thisTouch.pointerID = pointerID;
+		        // If the sphere already has a pointer, add a dummy elem instead.
+		        //if(checkSphereExists(sphereID)) TODO
+		         //thisTouch.sphereID = -1;
+		        //else
+		        thisTouch.sphereID = sphereID;
+		        thisTouch.x = x;
+		        thisTouch.y = y;
+		        raytraceThread.touches.add(thisTouch);
+		        return true;
+		    }
+		        
+		    if(action == MotionEvent.ACTION_MOVE) {
+		        // ACTION_MOVE events are batched, so we have to iterate over the pointers.
+		        for(int i=0; i<ev.getPointerCount(); i++) {
+		            // Find the matching touch.
+			        final int pointerID = ev.getPointerId(i);
+		            final int touchListIndex = getTouchListIndex(pointerID);
+		        	if(touchListIndex == -1) {
+		        	    Log.e("Raytracer.OnTouchListener", "Touch move failed.");
+		        		continue;
+		            }
+		        	TouchTracker touch = raytraceThread.touches.get(touchListIndex);
+                    // Update its position.
+		        	touch.x = ev.getX(i);
+		        	touch.y = ev.getY(i);
+		    	}
+		        return true;
+		    }
+		    
+		    if(action == MotionEvent.ACTION_POINTER_UP) {
+			    final int actionIndex = ev.getActionIndex();
+			    final int pointerID = ev.getPointerId(actionIndex);
+		        // Find the matching touch and remove it.
+		        final int touchListIndex = getTouchListIndex(pointerID);
+		    	if(touchListIndex == -1) {
+		    	    Log.e("Raytracer.OnTouchListener", "Touch remove failed.");
+		    		return false;
+		        }
+		    	raytraceThread.touches.remove(touchListIndex);
+		        return true;
+		    }
+		        
+		    if(action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+		        raytraceThread.touches.clear();
+		        return true;
+		    }
+		    
+		    Log.e("Raytracer", "Unhandled touch action " + action);
+		    return false;
+		}
+		
+		/* Returns the index of the elem in raytraceThread.touches
+		   that matches pointerID, or -1 if no match is found. */
+		private int getTouchListIndex(int pointerID) {
+		    for(int i=0; i < raytraceThread.touches.size(); i++) {
+				TouchTracker thisTouch = raytraceThread.touches.get(i);
+				if(pointerID == thisTouch.pointerID)
+					return i;
+			}
+			return -1;
+		}
+		
+		/* Returns true if there is an elem in raytraceThread.touches
+		   that matches sphereID. */
+		/*private boolean checkSphereExists(int sphereID) {
+		    for(int i=0; i < raytraceThread.touches.size(); i++) {
+				TouchTracker thisTouch = raytraceThread.touches.get(i);
+				if(sphereID == thisTouch.pointerID)
+					return true;
+			}
+			return false;
+		}*/
 	}
 
 	class RaytraceTask extends AsyncTask<Void, Integer, Bitmap> {
-		public boolean terminateThread = false;
 		private boolean ClearStats = false;
 		private long startTime;
 		private long numRays;
 		private int numFrames;
-		ArrayList<TouchTracker> touches = new ArrayList<TouchTracker> ();
-
+		
 		public class TouchTracker {
 			int pointerID;
 			int sphereID;
 			float x;
 			float y;
 		}
+		ArrayList<TouchTracker> touches = new ArrayList<TouchTracker> ();
 
 		public RaytraceTask() {
 			ClearStats();
@@ -208,7 +242,8 @@ public class MainActivity extends Activity {
 			PassLightProbe(mLightProbe);
 			PassBackground(mBackground);
 			long lastUpdateTime = System.currentTimeMillis();
-			while(!terminateThread) {
+			// Continue as long as owned by the MainActivity.
+			while(MainActivity.this.raytraceThread == this) {
 				for(int i=0; i < touches.size(); i++) {
 					TouchTracker touch = touches.get(i);
 					MoveTouch(touch.x, touch.y, touch.sphereID);
