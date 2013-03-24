@@ -22,7 +22,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
 public class MainActivity extends Activity {
-
+    
+    private final String TAG = "raytracer";
+    
 	private Bitmap mImage;
 	private Bitmap mLightProbe;
 	private Bitmap mBackground;
@@ -129,10 +131,6 @@ public class MainActivity extends Activity {
 		        // Add this touch to the list.
 		        TouchTracker thisTouch = raytraceThread.new TouchTracker();
 		        thisTouch.pointerID = pointerID;
-		        // If the sphere already has a pointer, add a dummy elem instead.
-		        //if(checkSphereExists(sphereID)) TODO
-		         //thisTouch.sphereID = -1;
-		        //else
 		        thisTouch.sphereID = sphereID;
 		        thisTouch.x = x;
 		        thisTouch.y = y;
@@ -146,10 +144,8 @@ public class MainActivity extends Activity {
 		            // Find the matching touch.
 			        final int pointerID = ev.getPointerId(i);
 		            final int touchListIndex = getTouchListIndex(pointerID);
-		        	if(touchListIndex == -1) {
-		        	    Log.e("Raytracer.OnTouchListener", "Touch move failed.");
+		        	if(touchListIndex == -1)
 		        		continue;
-		            }
 		        	TouchTracker touch = raytraceThread.touches.get(touchListIndex);
                     // Update its position.
 		        	touch.x = ev.getX(i);
@@ -163,10 +159,8 @@ public class MainActivity extends Activity {
 			    final int pointerID = ev.getPointerId(actionIndex);
 		        // Find the matching touch and remove it.
 		        final int touchListIndex = getTouchListIndex(pointerID);
-		    	if(touchListIndex == -1) {
-		    	    Log.e("Raytracer.OnTouchListener", "Touch remove failed.");
+		    	if(touchListIndex == -1) 
 		    		return false;
-		        }
 		    	raytraceThread.touches.remove(touchListIndex);
 		        return true;
 		    }
@@ -176,7 +170,7 @@ public class MainActivity extends Activity {
 		        return true;
 		    }
 		    
-		    Log.e("Raytracer", "Unhandled touch action " + action);
+		    Log.e(TAG, "Unhandled touch action " + action);
 		    return false;
 		}
 		
@@ -277,9 +271,9 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	/* load our native library */
+	// load our native library
 	static {
-		System.loadLibrary("plasma");
+		System.loadLibrary("raytracer");
 	}
 
 	private static native void Initialize(Bitmap input);

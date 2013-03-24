@@ -6,9 +6,11 @@ TODO:
 - background stretching.
 - BVH
 - Menu / back button bug
+- Screen timeout bug
+- Clang? (NDK_TOOLCHAIN_VERSION = clang)
 
 Version 1.5:
-- Improved multitouch.
+- Rewrote multitouch handlers.
 - Support for devices that do not correctly render alpha.
 - Fixed bug that allowed a background thread to persist after onPause().
 
