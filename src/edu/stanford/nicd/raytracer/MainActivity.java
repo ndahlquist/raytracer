@@ -1,10 +1,10 @@
 package edu.stanford.nicd.raytracer;
 
-import java.util.ArrayList;
-
-import edu.stanford.nicd.raytracer.MainActivity.RaytraceTask.TouchTracker;
-
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,10 +16,10 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+
+import java.util.ArrayList;
+
+import edu.stanford.nicd.raytracer.MainActivity.RaytraceTask.TouchTracker;
 
 public class MainActivity extends Activity {
     
