@@ -1,0 +1,12 @@
+.classpath
+.idea
+.project
+.settings
+art
+bin
+gen
+libs
+local.properties
+obj
+out
+proguard
