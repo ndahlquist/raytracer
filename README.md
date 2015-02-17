@@ -9,13 +9,4 @@ You can download the compiled APK from the [Google Play Store] (https://play.goo
 
 Building:
 Make sure the Android SDK and NDK are both installed and added to the PATH.
-From the top level of the project:
-
-Compile native source:
-$ ndk-build
-
-Configure ant (only neccesary to run once):
-$ android update project -p . -t 1
-
-Compile java, generate APK, and install:
-$ ant debug install
+Run `./gradlew installDebug`
