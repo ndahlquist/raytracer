@@ -52,6 +52,10 @@ task customNdkBuild << {
 
     println proc.text
     println buffer.toString()
+
+    if (proc.exitValue()) {
+        throw new RuntimeException("Failed to compile NDK code.")
+    }
 }
 
 dependencies {
