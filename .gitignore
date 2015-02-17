@@ -1,3 +1,9 @@
+
+.idea
+*.iml
+.gradle
+build
+local.properties
 .classpath
 .idea
 .project
