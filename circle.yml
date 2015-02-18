@@ -1,0 +1,7 @@
+dependencies:
+  override:
+    - ./gradlew dependencies
+
+test:
+  override:
+    - ./gradlew assembleDebug
