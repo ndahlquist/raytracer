@@ -1,6 +1,7 @@
 dependencies:
   override:
     - ./install_ndk.sh
+    - echo $PATH
 
 test:
   override:

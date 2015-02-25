@@ -16,3 +16,5 @@ local.properties
 obj
 out
 proguard
+android-ndk-r10d/
+ndk_installer.bin
