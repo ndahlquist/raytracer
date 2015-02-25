@@ -1,6 +1,6 @@
 dependencies:
   override:
-    - ./gradlew dependencies
+    - ./install_ndk.sh
 
 test:
   override:
