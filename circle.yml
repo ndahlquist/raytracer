@@ -2,11 +2,11 @@ dependencies:
   override:
     - ./install_ndk.sh
     - echo $PATH
-    - ls android-ndk-r10d
+    - which ndk-build
 
   cache_directories:
     - android-ndk-r10d
 
 test:
   override:
-    - ./gradlew assembleDebug
+    - ./gradlew assembleDebug -- stacktrace
