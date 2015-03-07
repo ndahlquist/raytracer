@@ -1,8 +1,10 @@
+machine:
+  environment:
+    ANDROID_NDK_HOME: /home/ubuntu/android/android-ndk
+
 dependencies:
   override:
-    - ./install_ndk.sh
-    - echo $PATH
-    - which ndk-build
+    - echo $(PWD)
 
   cache_directories:
     - android-ndk-r10d
