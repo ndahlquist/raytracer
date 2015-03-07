@@ -2,6 +2,10 @@ dependencies:
   override:
     - ./install_ndk.sh
     - echo $PATH
+    - ls android-ndk-r10d
+
+  cache_directories:
+    - android-ndk-r10d
 
 test:
   override:
