@@ -9,4 +9,4 @@ dependencies:
 
 test:
   override:
-    - ./gradlew assembleDebug -- stacktrace
+    - ./gradlew assembleDebug --stacktrace
