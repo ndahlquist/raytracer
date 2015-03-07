@@ -13,4 +13,4 @@ curl http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin >> ndk_i
 chmod a+x ndk_installer.bin
 ./ndk_installer.bin
 
-sudo ln -s /usr/bin/ndk-build android-ndk-r10d/ndk-build
+sudo ln -s "$(pwd)/android-ndk-r10d/ndk-build" /usr/bin/ndk-build
