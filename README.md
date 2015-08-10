@@ -4,7 +4,7 @@ This is a threaded CPU ray tracer written in native C++. On a multi-core device,
 
 You can download the compiled APK from the [Google Play Store] (https://play.google.com/store/apps/details?id=edu.stanford.nicd.raytracer&hl=en).
 
-![Screenshot](http://nicdahlquist.com/raytracer/img/crop.jpg)
+![Screenshot](https://lh5.ggpht.com/5fFmjuxzPZ2c7W2L_IeQLlt6Sd0em1-oINXJGgCMq4GEf4TG-5UtZUFr4bqVfiDO3ZLm=h900-rw)
 
 Building:
 Make sure the Android SDK and NDK are both installed and added to the PATH.
